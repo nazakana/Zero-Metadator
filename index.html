@@ -1041,12 +1041,11 @@
     }
 
   // =================================================================
-    // VERSI AMAN: TIDAK MERUSAK UPLOAD FILE + DIRECT VIA v1beta
+    // VERSI ANTI-404: MENGGUNAKAN MODEL RESMI cURL AI STUDIO
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
 
-        // Pastikan field creator ada sebelum diisi teks loading
         if (fields && fields.creator) {
             fields.creator.value = "Mencari komposer via Gemini AI...";
         }
@@ -1055,8 +1054,8 @@
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
-            // URL v1beta yang benar untuk model gemini-1.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+            // FIX TOTAL: Menggunakan model 'gemini-flash-latest' sesuai contoh cURL AI Studio kamu
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
             
             const response = await fetch(url, {
                 method: "POST",
@@ -1081,7 +1080,7 @@
                     if (fields && fields.creator) {
                         fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
                     }
-                    return; // Sukses keluar
+                    return;
                 }
             } else {
                 console.error("Gemini API Error Status:", response.status);
@@ -1090,8 +1089,6 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
-        // PERBAIKAN AMAN: Jika AI gagal/error, biarkan kosong agar user bisa isi sendiri,
-        // dan yang terpenting TIDAK merusak proses pembacaan file upload utama.
         if (fields && fields.creator) {
             fields.creator.value = ""; 
         }

@@ -1041,7 +1041,7 @@
     }
 
     // =================================================================
-    // METODE INTI: DIRECT CALL GOOGLE GEMINI API (URL FIX & TANPA BACKUP ARTIS)
+    // METODE INTI: DIRECT CALL GOOGLE GEMINI API (FIX ENDPOINT & HEADER)
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
@@ -1050,13 +1050,15 @@
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
-            // PERBAIKAN: URL Endpoint resmi v1beta yang valid untuk gemini-1.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+            // 1. SESUAIKAN URL: Menggunakan model 'gemini-flash-latest' sesuai petunjuk cURL AI Studio
+            const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
             
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    // 2. SESUAIKAN HEADER: Memasukkan API Key lewat header X-goog-api-key
+                    "X-goog-api-key": geminiKey
                 },
                 body: JSON.stringify({
                     contents: [{
@@ -1073,7 +1075,7 @@
 
                 if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
                     fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                    return; // Sukses dapat data, keluar dari fungsi
+                    return; // Sukses, langsung keluar dari fungsi
                 }
             } else {
                 console.error("Gemini API Error Status:", response.status);
@@ -1082,7 +1084,7 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
-        // KEPUTUSAN FINAL: Jika Gemini error/gagal/tidak tahu -> Langsung isi teks manual Anda (Tanpa lempar ke nama artis)
+        // KEPUTUSAN FINAL: Jika gagal, langsung tampilkan instruksi isi manual
         fields.creator.value = "info gagal didapat, silakan isi manual";
     }
 

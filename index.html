@@ -1008,7 +1008,7 @@
         document.body.appendChild(script);
     }
 
-   // =================================================================
+  // =================================================================
     // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA GEMINI AI
     // =================================================================
     function applyTrackToForm(item, highResArtUrl) {
@@ -1019,11 +1019,11 @@
         fields.year.value = item.releaseDate ? item.releaseDate.substring(0, 4) : "";
         fields.genre.value = item.primaryGenreName || "";
         
-        // Status awal super cepat
+        // Status loading awal
         fields.creator.value = "Mencari komposer via Gemini AI..."; 
 
         if (item.trackName && item.artistName) {
-            // LANGSUNG PANGGIL GEMINI AI TANPA ANTRI DI GENIUS
+            // LANGSUNG PANGGIL GEMINI AI TANPA ANTRI
             askAIForComposer(item.trackName, item.artistName);
         } else {
             fields.creator.value = "info gagal didapat, silakan isi manual";
@@ -1041,7 +1041,7 @@
     }
 
     // =================================================================
-    // METODE INTI: DIRECT CALL GOOGLE GEMINI API (METODE TERCEPAT)
+    // METODE INTI: DIRECT CALL GOOGLE GEMINI API (URL FIX & TANPA BACKUP ARTIS)
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
@@ -1050,6 +1050,7 @@
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
+            // PERBAIKAN: URL Endpoint resmi v1beta yang valid untuk gemini-1.5-flash
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
             
             const response = await fetch(url, {
@@ -1072,7 +1073,7 @@
 
                 if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
                     fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                    return; // Sukses, keluar dari fungsi
+                    return; // Sukses dapat data, keluar dari fungsi
                 }
             } else {
                 console.error("Gemini API Error Status:", response.status);
@@ -1081,14 +1082,8 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
-        // ALTERNATIF LAIN: JIKA GEMINI LIMIT/DOWN, AMBIL CO-WRITER DARI ARTIS UTAMA SEBELUM MENYERAH
-        if (artistName) {
-            console.log("Gemini gagal, beralih ke cadangan metadata artis.");
-            fields.creator.value = artistName.trim();
-        } else {
-            // BENTENG TERAKHIR JIKA UKURAN DATA BENAR-BENAR KOSONG
-            fields.creator.value = "info gagal didapat, silakan isi manual";
-        }
+        // KEPUTUSAN FINAL: Jika Gemini error/gagal/tidak tahu -> Langsung isi teks manual Anda (Tanpa lempar ke nama artis)
+        fields.creator.value = "info gagal didapat, silakan isi manual";
     }
 
     // Mengatur visual Frame pratinjau Album Art

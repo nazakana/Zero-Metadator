@@ -1041,18 +1041,21 @@
     }
 
   // =================================================================
-    // VERSI FINAL: LANGSUNG KE GEMINI (ANTI 404 & ANTI 403)
+    // VERSI AMAN: TIDAK MERUSAK UPLOAD FILE + DIRECT VIA v1beta
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
 
-        fields.creator.value = "Mencari komposer via Gemini AI...";
+        // Pastikan field creator ada sebelum diisi teks loading
+        if (fields && fields.creator) {
+            fields.creator.value = "Mencari komposer via Gemini AI...";
+        }
 
         const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan satu kata saja: KOSONG.";
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
-            // JALUR YANG BENAR: Menggunakan v1beta dan model gemini-1.5-flash
+            // URL v1beta yang benar untuk model gemini-1.5-flash
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
             
             const response = await fetch(url, {
@@ -1060,7 +1063,6 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                // TRIK AMPUH: Sembunyikan asal domain GitHub Pages agar bebas dari blokir 403 Forbidden
                 referrerPolicy: "no-referrer", 
                 body: JSON.stringify({
                     contents: [{
@@ -1076,8 +1078,10 @@
                 let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
-                    fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                    return; // Sukses, langsung keluar dari fungsi
+                    if (fields && fields.creator) {
+                        fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
+                    }
+                    return; // Sukses keluar
                 }
             } else {
                 console.error("Gemini API Error Status:", response.status);
@@ -1086,9 +1090,13 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
-        // KEPUTUSAN FINAL: Jika gagal total, kunci form ke instruksi isi manual
-        fields.creator.value = "info gagal didapat, silakan isi manual";
+        // PERBAIKAN AMAN: Jika AI gagal/error, biarkan kosong agar user bisa isi sendiri,
+        // dan yang terpenting TIDAK merusak proses pembacaan file upload utama.
+        if (fields && fields.creator) {
+            fields.creator.value = ""; 
+        }
     }
+	
 
     // Mengatur visual Frame pratinjau Album Art
     function setArtworkPreview(src, statusText) {

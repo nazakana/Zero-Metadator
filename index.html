@@ -1041,7 +1041,7 @@
     }
 
     // =================================================================
-    // METODE INTI: DIRECT CALL GOOGLE GEMINI API (FIX ENDPOINT & HEADER)
+    // METODE FINAL: HYBRID CALL GEMINI API (ANTI 403 FORBIDDEN / CORS)
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
@@ -1050,15 +1050,14 @@
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
-            // 1. SESUAIKAN URL: Menggunakan model 'gemini-flash-latest' sesuai petunjuk cURL AI Studio
-            const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+            // SOLUSI: Gabungkan model 'gemini-flash-latest' dengan parameter '?key=' di ujung URL untuk bypass 403
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
             
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    // 2. SESUAIKAN HEADER: Memasukkan API Key lewat header X-goog-api-key
-                    "X-goog-api-key": geminiKey
+                    "Content-Type": "application/json"
+                    // Kita hapus X-goog-api-key dari header karena sudah dipindah ke URL parameter (?key=)
                 },
                 body: JSON.stringify({
                     contents: [{
@@ -1084,7 +1083,7 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
-        // KEPUTUSAN FINAL: Jika gagal, langsung tampilkan instruksi isi manual
+        // KEPUTUSAN FINAL: Jika gagal/403, kunci form ke instruksi isi manual
         fields.creator.value = "info gagal didapat, silakan isi manual";
     }
 

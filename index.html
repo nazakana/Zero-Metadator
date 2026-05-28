@@ -1040,8 +1040,8 @@
         }
     }
 
-   // =================================================================
-    // METODE FIX TOTAL: DIRECT FETCH POST + BYPASS REFERRER (ANTI 403 & 404)
+  // =================================================================
+    // VERSI FINAL: LANGSUNG KE GEMINI (ANTI 404 & ANTI 403)
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
@@ -1052,7 +1052,7 @@
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
-            // Kembali ke URL v1beta yang valid dan terbukti tidak 404
+            // JALUR YANG BENAR: Menggunakan v1beta dan model gemini-1.5-flash
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
             
             const response = await fetch(url, {
@@ -1060,7 +1060,7 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                // TRIK UTAMA: Menyembunyikan asal domain GitHub Pages agar bebas dari blokir 403 Forbidden
+                // TRIK AMPUH: Sembunyikan asal domain GitHub Pages agar bebas dari blokir 403 Forbidden
                 referrerPolicy: "no-referrer", 
                 body: JSON.stringify({
                     contents: [{
@@ -1077,7 +1077,7 @@
 
                 if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
                     fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                    return; // Sukses, keluar dari fungsi
+                    return; // Sukses, langsung keluar dari fungsi
                 }
             } else {
                 console.error("Gemini API Error Status:", response.status);
@@ -1086,9 +1086,8 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
-        // KEPUTUSAN FINAL: Jika gagal, langsung kunci ke instruksi isi manual
+        // KEPUTUSAN FINAL: Jika gagal total, kunci form ke instruksi isi manual
         fields.creator.value = "info gagal didapat, silakan isi manual";
-    }
     }
 
     // Mengatur visual Frame pratinjau Album Art

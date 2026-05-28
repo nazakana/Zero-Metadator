@@ -7,7 +7,6 @@
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0a051b">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     
@@ -1128,7 +1127,7 @@
         document.body.appendChild(script);
     }
 
-   // =================================================================
+    // =================================================================
     // JALAN KELUAR UTAMA: DETEKSI AI VIA DUCKDUCKGO + ALLORIGINS JSONP (100% BEBAS CORS)
     // =================================================================
     function askAIForComposer(trackName, artistName) {
@@ -1145,23 +1144,27 @@
         // Daftarkan fungsi callback global untuk menerima jawaban dari proxy AI
         window.onAiResponseReceived = function(response) {
             try {
-                // AllOrigins mengembalikan payload teks di dalam properti .contents
                 if (response && response.contents) {
-                    const aiData = JSON.parse(response.contents);
-                    
-                    // Ekstrak pesan teks balasan dari struktur data chat DuckDuckGo / Vercel AI
                     let aiText = "";
-                    if (aiData.choices && aiData.choices[0] && aiData.choices[0].message) {
-                        aiText = aiData.choices[0].message.content;
-                    } else if (typeof aiData === 'string') {
-                        aiText = aiData;
-                    } else if (aiData.reply) {
-                        aiText = aiData.reply;
+                    
+                    // Blok try-catch berlapis untuk membedakan string mentah vs JSON Object
+                    try {
+                        const aiData = JSON.parse(response.contents);
+                        if (aiData.choices && aiData.choices[0] && aiData.choices[0].message) {
+                            aiText = aiData.choices[0].message.content;
+                        } else if (aiData.reply) {
+                            aiText = aiData.reply;
+                        } else {
+                            aiText = response.contents;
+                        }
+                    } catch (jsonErr) {
+                        // Jika AllOrigins mengembalikan plain text mentah langsung dari AI
+                        aiText = response.contents;
                     }
 
                     if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
-                        // Bersihkan teks dari tanda kutip atau titik di akhir yang sering dibuat AI
-                        fields.creator.value = aiText.replace(/[".]/g, "").trim();
+                        // Bersihkan teks dari tanda kutip, backticks, atau titik menggantung di akhir yang sering dibuat AI
+                        fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
                         return;
                     }
                 }

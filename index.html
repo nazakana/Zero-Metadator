@@ -6,9 +6,7 @@
     <title>Zero Metadator — MP3 Metadata Editor</title>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0a051b">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <!-- Hubungkan ke file manifest.json fisik -->
     <link rel="manifest" href="manifest.json">
@@ -1011,7 +1009,7 @@
     }
 
    // =================================================================
-    // FORM TRACK APPLICATION + GENERATE AUTOMATIC COMPOSER VIA AI
+    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA GEMINI AI
     // =================================================================
     function applyTrackToForm(item, highResArtUrl) {
         fields.title.value = item.trackName || "";
@@ -1021,12 +1019,12 @@
         fields.year.value = item.releaseDate ? item.releaseDate.substring(0, 4) : "";
         fields.genre.value = item.primaryGenreName || "";
         
-        // Status awal saat mencari data pencipta
-        fields.creator.value = "Mencari pencipta lirik & komposer asli..."; 
+        // Status awal super cepat
+        fields.creator.value = "Mencari komposer via Gemini AI..."; 
 
         if (item.trackName && item.artistName) {
-            // Pertama, coba cari lewat database web konvensional dulu
-            fetchComposerFromGenius(item.trackName, item.artistName);
+            // LANGSUNG PANGGIL GEMINI AI TANPA ANTRI DI GENIUS
+            askAIForComposer(item.trackName, item.artistName);
         } else {
             fields.creator.value = "info gagal didapat, silakan isi manual";
         }
@@ -1042,152 +1040,55 @@
         }
     }
 
-    // LANGKAH 1: Mencari di database konvensional (Genius)
-    function fetchComposerFromGenius(trackName, artistName) {
-        const oldGeniusScript = document.getElementById('genius-jsonp-script');
-        if (oldGeniusScript) oldGeniusScript.remove();
-
-        const cleanArtist = artistName.split(/feat\.|,|&/i)[0].trim();
-        const searchQuery = `${trackName} ${cleanArtist}`;
-
-        window.onGeniusSearchReceived = function(response) {
-            try {
-                const htmlString = response.contents;
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlString, "text/html");
-                const firstResultLink = doc.querySelector('a[href*="/lyrics"]');
-                
-                if (firstResultLink && firstResultLink.href) {
-                    let originalLyricsUrl = firstResultLink.href;
-                    if (originalLyricsUrl.includes('allorigins')) {
-                        const urlParams = new URLSearchParams(new URL(originalLyricsUrl).search);
-                        originalLyricsUrl = urlParams.get('url');
-                    }
-                    scrapeGeniusSongPage(originalLyricsUrl, trackName, artistName);
-                    return; 
-                }
-            } catch (e) {
-                console.error("Gagal membaca database biasa:", e);
-            }
-            // JIKA DB BIASA GAGAL -> OPER LANGSUNG KE AI UNTUK MENJAWAB
-            askAIForComposer(trackName, artistName);
-        };
-
-        const targetSearchUrl = `https://genius.com/search?q=${encodeURIComponent(searchQuery)}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetSearchUrl)}&callback=onGeniusSearchReceived`;
-
-        const script = document.createElement('script');
-        script.id = 'genius-jsonp-script';
-        script.src = proxyUrl;
-        script.onerror = function() { askAIForComposer(trackName, artistName); };
-        document.body.appendChild(script);
-    }
-
-    // LANGKAH 2: Ekstrak data halaman lirik konvensional
-    function scrapeGeniusSongPage(lyricsUrl, trackName, artistName) {
-        const oldScrapeScript = document.getElementById('genius-scrape-script');
-        if (oldScrapeScript) oldScrapeScript.remove();
-
-        window.onGeniusPageScraped = function(response) {
-            try {
-                const htmlString = response.contents;
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlString, "text/html");
-                let creators = [];
-
-                const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]');
-                jsonLdScripts.forEach(scriptTag => {
-                    try {
-                        const data = JSON.parse(scriptTag.textContent);
-                        if (data && data.author) {
-                            const authors = Array.isArray(data.author) ? data.author : [data.author];
-                            authors.forEach(auth => {
-                                if (auth.name && !creators.includes(auth.name)) creators.push(auth.name);
-                            });
-                        }
-                    } catch (jsonErr) {}
-                });
-
-                if (creators.length > 0) {
-                    fields.creator.value = creators.join(', ');
-                    return;
-                }
-            } catch (e) {
-                console.error("Scraping gagal:", e);
-            }
-            // JIKA HALAMAN KOSONG/GAGAL -> OPER KE AI
-            askAIForComposer(trackName, artistName);
-        };
-
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(lyricsUrl)}&callback=onGeniusPageScraped`;
-        const script = document.createElement('script');
-        script.id = 'genius-scrape-script';
-        script.src = proxyUrl;
-        script.onerror = function() { askAIForComposer(trackName, artistName); };
-        document.body.appendChild(script);
-    }
-
     // =================================================================
-    // JALAN KELUAR UTAMA: DETEKSI AI VIA DUCKDUCKGO + ALLORIGINS JSONP (100% BEBAS CORS)
+    // METODE INTI: DIRECT CALL GOOGLE GEMINI API (METODE TERCEPAT)
     // =================================================================
-    function askAIForComposer(trackName, artistName) {
-        fields.creator.value = "Database kosong. Meminta bantuan AI mencari...";
+    async function askAIForComposer(trackName, artistName) {
+        const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
 
-        // Bersihkan elemen script lama agar tidak menumpuk di DOM
-        const oldAiScript = document.getElementById('ai-jsonp-script');
-        if (oldAiScript) oldAiScript.remove();
-
-        // Prompt super ketat agar AI hanya membalas nama-nama komposer dipisahkan koma
-        const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan kata: KOSONG.";
+        const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan satu kata saja: KOSONG.";
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
-        // Daftarkan fungsi callback global untuk menerima jawaban dari proxy AI
-        window.onAiResponseReceived = function(response) {
-            try {
-                if (response && response.contents) {
-                    let aiText = "";
-                    
-                    // Blok try-catch berlapis untuk membedakan string mentah vs JSON Object
-                    try {
-                        const aiData = JSON.parse(response.contents);
-                        if (aiData.choices && aiData.choices[0] && aiData.choices[0].message) {
-                            aiText = aiData.choices[0].message.content;
-                        } else if (aiData.reply) {
-                            aiText = aiData.reply;
-                        } else {
-                            aiText = response.contents;
-                        }
-                    } catch (jsonErr) {
-                        // Jika AllOrigins mengembalikan plain text mentah langsung dari AI
-                        aiText = response.contents;
-                    }
-
-                    if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
-                        // Bersihkan teks dari tanda kutip, backticks, atau titik menggantung di akhir yang sering dibuat AI
-                        fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.error("Gagal mengurai jawaban AI:", e);
-            }
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
             
-            // Benteng terakhir jika AI mengembalikan kata KOSONG atau gagal parse
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `${promptSystem}\n\nPertanyaan:\n${promptUser}`
+                        }]
+                    }]
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
+                    fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
+                    return; // Sukses, keluar dari fungsi
+                }
+            } else {
+                console.error("Gemini API Error Status:", response.status);
+            }
+        } catch (error) {
+            console.error("Koneksi langsung ke Gemini API terputus:", error);
+        }
+
+        // ALTERNATIF LAIN: JIKA GEMINI LIMIT/DOWN, AMBIL CO-WRITER DARI ARTIS UTAMA SEBELUM MENYERAH
+        if (artistName) {
+            console.log("Gemini gagal, beralih ke cadangan metadata artis.");
+            fields.creator.value = artistName.trim();
+        } else {
+            // BENTENG TERAKHIR JIKA UKURAN DATA BENAR-BENAR KOSONG
             fields.creator.value = "info gagal didapat, silakan isi manual";
-        };
-
-        // Memanfaatkan penyedia endpoint AI bebas tanpa token (DuckDuckGo chat proxy) via AllOrigins JSONP
-        const targetAiUrl = `https://util.toolforge.org/api/ai-chat?system=${encodeURIComponent(promptSystem)}&user=${encodeURIComponent(promptUser)}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetAiUrl)}&callback=onAiResponseReceived`;
-
-        // Injeksi elemen script untuk bypass CORS secara native
-        const script = document.createElement('script');
-        script.id = 'ai-jsonp-script';
-        script.src = proxyUrl;
-        script.onerror = function() { 
-            fields.creator.value = "info gagal didapat, silakan isi manual"; 
-        };
-        document.body.appendChild(script);
+        }
     }
 
     // Mengatur visual Frame pratinjau Album Art

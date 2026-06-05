@@ -1053,7 +1053,8 @@
     const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan satu kata saja: KOSONG.";
     const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
-    const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
+    // SOLUSI: Langsung tembak ke endpoint Google Gemini tanpa proxy pihak ketiga
+    const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
     
     const geminiPayload = {
         contents: [{
@@ -1064,10 +1065,8 @@
     };
 
     try {
-        // SOLUSI: Menggunakan proxy alternatif ThingProxy yang mendukung POST request
-        const proxyUrl = "https://thingproxy.freeboard.io/fetch/" + encodeURIComponent(targetUrl);
-        
-        const response = await fetch(proxyUrl, {
+        // Melakukan fetch langsung ke Google (Sudah mendukung CORS untuk metode POST)
+        const response = await fetch(directUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -1081,17 +1080,22 @@
 
             if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
                 if (fields && fields.creator) {
+                    // Membersihkan karakter kutip atau titik yang kadang disertakan AI
                     fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
                 }
-                return;
+                return; // Berhasil keluar dari fungsi
             }
         } else {
-            console.error("Gemini Proxy API Error Status:", response.status);
+            console.error("Gemini API Error Status:", response.status);
+            // Jika error 400/403, kemungkinan API Key invalid atau kuota habis
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Detail Error:", errorData);
         }
     } catch (error) {
-        console.error("Koneksi via Proxy terputus:", error);
+        console.error("Gagal terhubung langsung ke Gemini API:", error);
     }
 
+    // Jika gagal atau AI tidak tahu, kosongkan form input komposer
     if (fields && fields.creator) {
         fields.creator.value = ""; 
     }

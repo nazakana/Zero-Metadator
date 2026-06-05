@@ -1043,62 +1043,59 @@
   // =================================================================
     // SOLUSI JALUR ALTERNATIF: BYPASS 403 VIA CORS-PROXY POST
     // =================================================================
-    async function askAIForComposer(trackName, artistName) {
-        const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
+  async function askAIForComposer(trackName, artistName) {
+    const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
 
-        if (fields && fields.creator) {
-            fields.creator.value = "Mencari komposer via Gemini AI Engine...";
-        }
-
-        const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan satu kata saja: KOSONG.";
-        const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
-
-        // Alamat asli Gemini yang dituju
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
-        
-        // Payload JSON mentah yang dibutuhkan Gemini
-        const geminiPayload = {
-            contents: [{
-                parts: [{
-                    text: `${promptSystem}\n\nPertanyaan:\n${promptUser}`
-                }]
-            }]
-        };
-
-        try {
-            // Kita tembak ke proxy khusus AllOrigins untuk mem-bypass CORS & Restriksi Domain
-            const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl);
-            
-            const response = await fetch(proxyUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(geminiPayload)
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
-                    if (fields && fields.creator) {
-                        fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                    }
-                    return;
-                }
-            } else {
-                console.error("Gemini Proxy API Error Status:", response.status);
-            }
-        } catch (error) {
-            console.error("Koneksi via Proxy terputus:", error);
-        }
-
-        // Amankan form agar upload file utama tidak macet jika terjadi kegagalan AI
-        if (fields && fields.creator) {
-            fields.creator.value = ""; 
-        }
+    if (fields && fields.creator) {
+        fields.creator.value = "Mencari komposer via Gemini AI Engine...";
     }
+
+    const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan satu kata saja: KOSONG.";
+    const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
+
+    const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
+    
+    const geminiPayload = {
+        contents: [{
+            parts: [{
+                text: `${promptSystem}\n\nPertanyaan:\n${promptUser}`
+            }]
+        }]
+    };
+
+    try {
+        // SOLUSI: Menggunakan proxy alternatif ThingProxy yang mendukung POST request
+        const proxyUrl = "https://thingproxy.freeboard.io/fetch/" + encodeURIComponent(targetUrl);
+        
+        const response = await fetch(proxyUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(geminiPayload)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
+                if (fields && fields.creator) {
+                    fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
+                }
+                return;
+            }
+        } else {
+            console.error("Gemini Proxy API Error Status:", response.status);
+        }
+    } catch (error) {
+        console.error("Koneksi via Proxy terputus:", error);
+    }
+
+    if (fields && fields.creator) {
+        fields.creator.value = ""; 
+    }
+}
 	
 
     // Mengatur visual Frame pratinjau Album Art

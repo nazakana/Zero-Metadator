@@ -1041,7 +1041,7 @@
     }
 
   // =================================================================
-    // VERSI ANTI-404: MENGGUNAKAN MODEL RESMI cURL AI STUDIO
+    // FIX TOTAL ANTI-404: MENGGUNAKAN MODEL RESMI GEMINI-FLASH-LATEST
     // =================================================================
     async function askAIForComposer(trackName, artistName) {
         const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
@@ -1054,7 +1054,7 @@
         const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
 
         try {
-            // FIX TOTAL: Menggunakan model 'gemini-flash-latest' sesuai contoh cURL AI Studio kamu
+            // PERUBAHAN UTAMA: Menggunakan gemini-flash-latest agar tidak terjadi 404 lagi!
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
             
             const response = await fetch(url, {
@@ -1089,6 +1089,7 @@
             console.error("Koneksi langsung ke Gemini API terputus:", error);
         }
 
+        // Jika gagal, kembalikan ke string kosong agar proses upload file utama tidak macet
         if (fields && fields.creator) {
             fields.creator.value = ""; 
         }

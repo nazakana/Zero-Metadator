@@ -1038,10 +1038,11 @@
         const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
 
         try {
-            // Kirim data menggunakan mode CORS dan text/plain untuk menghindari preflight CORS block
+            // Kirim data menggunakan mode CORS dan izinkan pengalihan (redirect: follow)
             const response = await fetch(proxyUrl, {
                 method: "POST",
                 mode: "cors", 
+                redirect: "follow", // <-- WAJIB TAMBAHKAN BARIS INI
                 headers: {
                     "Content-Type": "text/plain;charset=utf-8"
                 },
@@ -1050,7 +1051,7 @@
                     artistName: artistName
                 })
             });
-
+			
             if (response.ok) {
                 const data = await response.json();
                 

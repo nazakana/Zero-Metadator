@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zero Metadator — MP3 Metadata Editor</title>
-    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0a051b">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- Hubungkan ke file manifest.json fisik -->
     <link rel="manifest" href="manifest.json">
     
     <style>
@@ -639,7 +637,6 @@
 <div class="app-card">
     <header>
         <div class="logo-container">
-            <!-- Icon Music & Gear gabungan SVG -->
             <svg viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 11v1c0 1.66 1.34 3 3 3h1v2.93zm4.9-3.24c-.1-.32-.33-.6-.64-.75l-1.1-.53c-.31-.15-.49-.49-.44-.83.08-.51.13-1.03.13-1.58 0-3.36-2.07-6.23-5-7.39V4c0-.55-.45-1-1-1s-1 .45-1 1v.22c-.66.14-1.3.38-1.9.71L9.12 4.1c-.39-.39-1.02-.39-1.41 0s-.39 1.02 0 1.41l1.58 1.58c-.34.42-.62.88-.84 1.38L6.1 8.1c-.39-.39-1.02-.39-1.41 0s-.39 1.02 0 1.41l1.6 1.6C6.1 11.41 6 11.7 6 12c0 2.97 1.62 5.56 4 6.93V20c0 .55.45 1 1 1s1-.45 1-1v-.07c1.32-.23 2.51-.83 3.48-1.68l1.41 1.41c.39.39 1.02.39 1.41 0s.39-1.02 0-1.41l-1.41-1.41c.64-.81 1.13-1.77 1.41-2.82l.83-.4c.31-.15.54-.43.64-.75z"/>
             </svg>
@@ -648,7 +645,6 @@
         <p>Aplikasi Metadata Tag & Rename MP3 Otomatis</p>
     </header>
 
-    <!-- Upload Area -->
     <div class="upload-wrapper">
         <div class="drop-zone" id="drop-zone">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -661,7 +657,6 @@
         </div>
     </div>
 
-    <!-- Mini Player Info -->
     <div class="file-loaded-view" id="player-view">
         <div class="vinyl-disc" id="vinyl"></div>
         <div class="file-details">
@@ -669,14 +664,11 @@
             <p id="loaded-file-size">0.0 MB</p>
         </div>
         <button class="player-control-btn" id="play-btn" title="Putar Pratinjau">
-            <!-- Icon Play -->
             <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <!-- Icon Pause (Hidden by default) -->
             <svg id="pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
     </div>
 
-    <!-- Input Pencarian -->
     <div class="search-container">
         <div class="search-input-wrapper">
             <input type="text" id="search-input" placeholder="Ketik Judul Lagu / Artis untuk dicari...">
@@ -687,14 +679,11 @@
         </button>
     </div>
 
-    <!-- MULTIPLE SUGGESTIONS LIST -->
     <div class="suggestions-title" id="suggestions-title">Kemungkinan Lagu yang Cocok:</div>
     <div class="suggestions-list" id="suggestions-list"></div>
 
-    <!-- PREVIEW ALBUM ART -->
     <div class="art-preview-section">
         <div class="art-frame" id="art-frame">
-            <!-- Music Icon Placeholder -->
             <svg id="art-placeholder-icon" viewBox="0 0 24 24">
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
@@ -702,7 +691,6 @@
         <span id="art-status-text">Tidak ada Album Art</span>
     </div>
 
-    <!-- Form Edit Metadata -->
     <div class="metadata-form">
         <div class="input-group full-width">
             <label>Judul Lagu</label>
@@ -734,7 +722,6 @@
         </div>
     </div>
 
-    <!-- Submit Area -->
     <div class="footer-action">
         <button class="btn-submit" id="process-btn">
             <svg style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;" viewBox="0 0 24 24">
@@ -746,7 +733,6 @@
     </div>
 </div>
 
-<!-- OVERLAY LOADING MODAL -->
 <div class="modal-overlay" id="loading-modal">
     <div class="modal-card">
         <div class="modal-spinner"></div>
@@ -755,7 +741,6 @@
     </div>
 </div>
 
-<!-- Audio Player Element (Hidden) -->
 <audio id="audio-player"></audio>
 
 <script>
@@ -836,6 +821,7 @@
     });
 
     dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drop-zone');
         dropZone.classList.remove('dragover');
     });
 
@@ -1008,8 +994,8 @@
         document.body.appendChild(script);
     }
 
-  // =================================================================
-    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA GEMINI AI
+    // =================================================================
+    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
     // =================================================================
     function applyTrackToForm(item, highResArtUrl) {
         fields.title.value = item.trackName || "";
@@ -1023,10 +1009,10 @@
         fields.creator.value = "Mencari komposer via Gemini AI..."; 
 
         if (item.trackName && item.artistName) {
-            // LANGSUNG PANGGIL GEMINI AI TANPA ANTRI
+            // PANGGIL GEMINI AI VIA PROXY GOOGLE APPS SCRIPT
             askAIForComposer(item.trackName, item.artistName);
         } else {
-            fields.creator.value = "info gagal didapat, silakan isi manual";
+            fields.creator.value = "";
         }
 
         if (highResArtUrl) {
@@ -1040,67 +1026,54 @@
         }
     }
 
-  // =================================================================
-    // SOLUSI JALUR ALTERNATIF: BYPASS 403 VIA CORS-PROXY POST
     // =================================================================
-  async function askAIForComposer(trackName, artistName) {
-    const geminiKey = "AIzaSyDfPhDPDeKXjvxDv2VdD3CLAni8i2pUuhU";
-
-    if (fields && fields.creator) {
-        fields.creator.value = "Mencari komposer via Gemini AI Engine...";
-    }
-
-    const promptSystem = "Kamu adalah API database musik cerdas. Tugasmu hanya menyebutkan nama-nama komposer, pencipta lirik, atau produser asli dari lagu yang ditanyakan. Jangan berikan teks pembuka, jangan berikan penjelasan, jangan pakai kata 'Berikut adalah'. Cukup sebutkan nama-nama tokohnya saja dipisahkan dengan koma. Jika kamu benar-benar tidak tahu, jawab dengan satu kata saja: KOSONG.";
-    const promptUser = `Siapa pencipta lirik dan komposer asli untuk lagu berjudul "${trackName}" yang dinyanyikan oleh "${artistName}"?`;
-
-    // SOLUSI: Langsung tembak ke endpoint Google Gemini tanpa proxy pihak ketiga
-    const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`;
-    
-    const geminiPayload = {
-        contents: [{
-            parts: [{
-                text: `${promptSystem}\n\nPertanyaan:\n${promptUser}`
-            }]
-        }]
-    };
-
-    try {
-        // Melakukan fetch langsung ke Google (Sudah mendukung CORS untuk metode POST)
-        const response = await fetch(directUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(geminiPayload)
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            let aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (aiText && aiText.trim() !== "" && !aiText.toUpperCase().includes("KOSONG")) {
-                if (fields && fields.creator) {
-                    // Membersihkan karakter kutip atau titik yang kadang disertakan AI
-                    fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                }
-                return; // Berhasil keluar dari fungsi
-            }
-        } else {
-            console.error("Gemini API Error Status:", response.status);
-            // Jika error 400/403, kemungkinan API Key invalid atau kuota habis
-            const errorData = await response.json().catch(() => ({}));
-            console.error("Detail Error:", errorData);
+    // SOLUSI UTAMA: MENGGUNAKAN PROXY WEB APP UNTUK AMANKAN REQUEST AI
+    // =================================================================
+    async function askAIForComposer(trackName, artistName) {
+        if (fields && fields.creator) {
+            fields.creator.value = "Mencari komposer via Gemini Engine...";
         }
-    } catch (error) {
-        console.error("Gagal terhubung langsung ke Gemini API:", error);
-    }
 
-    // Jika gagal atau AI tidak tahu, kosongkan form input komposer
-    if (fields && fields.creator) {
-        fields.creator.value = ""; 
+        // URL Web App Google Apps Script Milikmu
+        const proxyUrl = "https://script.google.com/macros/s/AKfycbz_wP26D_W6bHkU_vsh88VbWIn_O_R9_Y77kRByK4-SreTjofRWeDizL9b_B6l6PqYv/exec";
+
+        try {
+            // Kirim data menggunakan mode CORS dan text/plain untuk menghindari preflight CORS block
+            const response = await fetch(proxyUrl, {
+                method: "POST",
+                mode: "cors", 
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    trackName: trackName,
+                    artistName: artistName
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Cek jika proxy sukses dan mengembalikan data teks komposer
+                if (data.status === "success" && data.composer) {
+                    let aiText = data.composer.trim();
+                    if (aiText !== "" && !aiText.toUpperCase().includes("KOSONG")) {
+                        if (fields && fields.creator) {
+                            fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
+                        }
+                        return; // Selesai
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Gagal terhubung ke Proxy Google Apps Script:", error);
+        }
+
+        // Jika gagal atau data tidak ditemukan, kosongkan input komposer agar user bisa isi manual
+        if (fields && fields.creator) {
+            fields.creator.value = ""; 
+        }
     }
-}
-	
 
     // Mengatur visual Frame pratinjau Album Art
     function setArtworkPreview(src, statusText) {
@@ -1317,13 +1290,14 @@
                     return concatUint8Arrays([header, valueBytes]);
                 }
 
+                // Fungsi Pembantu Teks
                 function buildTextFrame(frameId, valueString) {
                     if (!valueString) return new Uint8Array(0);
                     const valueBytes = encodeUTF16LE(valueString);
                     return buildBinaryFrame(frameId, valueBytes);
                 }
 
-                // Fungsi APIC Frame Baru: Menggunakan struktur flat array tanpa spread operator biner raksasa
+                // Fungsi APIC Frame Baru
                 function buildApicFrame(imageBuffer) {
                     if (!imageBuffer) return new Uint8Array(0);
                     const imageBytes = new Uint8Array(imageBuffer);
@@ -1422,7 +1396,7 @@
                 // Jalankan klik langsung
                 downloadAnchor.click();
 
-                // Beri penundaan sedikit agar peramban mobile (seperti Safari iOS) sempat menangkap berkas
+                // Beri penundaan sedikit agar peramban mobile sempat menangkap berkas
                 setTimeout(() => {
                     document.body.removeChild(downloadAnchor);
                     URL.revokeObjectURL(downloadUrl);

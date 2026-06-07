@@ -1101,83 +1101,51 @@
     // REVISI: MENGGUNAKAN PROXY WEB APP DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
    async function askAIForComposer(trackName, artistName) {
   if (fields && fields.creator) {
-    fields.creator.value = "Menghubungi AI Engine...";
+    fields.creator.value = "Menganalisis database musik global...";
     fields.creator.classList.add('ai-searching');
-  }
-  
-  const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
-  
-  // TRANSMISI ULTRA-STABIL: Menggunakan URLSearchParams
-  async function fetchFromAI(tName, aName) {
-    const params = new URLSearchParams();
-    params.append("trackName", tName);
-    params.append("artistName", aName);
-
-    const response = await fetch(proxyUrl, {
-      method: "POST",
-      mode: "cors",
-      redirect: "follow",
-      headers: { 
-        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" 
-      },
-      body: params.toString()
-    });
-    
-    if (!response.ok) throw new Error("HTTP Network Error");
-    return await response.json();
-  }
-
-  // VALIDASI PINTAR: Mengenali kode kegagalan dari Server GAS
-  function isJawabanValid(teks) {
-    if (!teks) return false;
-    const clean = teks.trim().toUpperCase();
-    if (clean === "" || clean.includes("ERROR") || clean.includes("TIDAK_DITEMUKAN") || clean.includes("BUNTU")) {
-      return false;
-    }
-    return true;
   }
 
   try {
-    // TAHAP 1: Kirim data asli iTunes
-    fields.creator.value = "Mencari komposer via AI Engine (Tahap 1)...";
-    let res = await fetchFromAI(trackName, artistName);
-    
-    if (res.status === "success" && isJawabanValid(res.composer)) {
-      fields.creator.value = res.composer.trim();
-      return; 
-    }
-
-    // TAHAP 2: Pembersihan string (hapus fitur feat, remix, kurung)
-    console.warn("Tahap 1 Gagal. Eskalasi ke Tahap 2: Pembersihan String...");
+    // Bersihkan judul dan artis agar pencarian lebih presisi
     let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').split('-')[0].trim();
     let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
     
-    fields.creator.value = "Menyaring ulang kluster data (Tahap 2)...";
-    res = await fetchFromAI(cleanTrack, cleanArtist);
+    // Tembak langsung ke Database Apple Music (Tanpa CORS Error, Tanpa API Key)
+    let query = encodeURIComponent(`${cleanTrack} ${cleanArtist}`);
+    let itunesUrl = `https://itunes.apple.com/search?term=${query}&media=music&limit=3`;
     
-    if (res.status === "success" && isJawabanValid(res.composer)) {
-      fields.creator.value = res.composer.trim();
-      return; 
+    const response = await fetch(itunesUrl);
+    
+    if (!response.ok) {
+      throw new Error("Server iTunes Menolak Akses");
+    }
+    
+    const data = await response.json();
+    let foundComposer = "";
+    
+    // Cari data yang memiliki atribut composerName di hasil pencarian
+    if (data.results && data.results.length > 0) {
+      for (let item of data.results) {
+        if (item.composerName) {
+          foundComposer = item.composerName;
+          break; // Berhenti mencari jika komposer sudah ditemukan
+        }
+      }
     }
 
-    // TAHAP 3: Blind Mode (Tanpa artis)
-    console.warn("Tahap 2 Gagal. Eskalasi ke Tahap 3: Blind Mode...");
-    fields.creator.value = "Menganalisis indeks musik universal (Tahap 3)...";
-    res = await fetchFromAI(cleanTrack, ""); 
-    
-    if (res.status === "success" && isJawabanValid(res.composer)) {
-      fields.creator.value = res.composer.trim();
-      return; 
+    if (foundComposer) {
+      // Merapikan simbol "&" bawaan iTunes menjadi koma agar rapi
+      fields.creator.value = foundComposer.replace(/&/g, ',').trim();
+    } else {
+      // Jika di database global benar-benar kosong
+      fields.creator.value = "";
+      fields.creator.placeholder = "Komposer tidak tercatat di database.";
     }
-    
-    // KONDISI GAGAL TOTAL: Bersihkan field agar bisa diisi manual
-    fields.creator.value = "";
-    fields.creator.placeholder = "Komposer tidak ditemukan.";
 
   } catch (err) {
-    console.error("Koneksi Engine Bermasalah:", err);
+    console.error("Gagal menarik data komposer:", err);
     fields.creator.value = "";
-    fields.creator.placeholder = "Gagal memuat AI Engine.";
+    fields.creator.placeholder = "Koneksi database gagal.";
   } finally {
     if (fields && fields.creator) {
       fields.creator.classList.remove('ai-searching');

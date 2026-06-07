@@ -1087,14 +1087,12 @@
         fetchMetadataJSONP(query);
     });
 
-    function fetchMetadataJSONP(query) {
+   function fetchMetadataJSONP(query) {
         const existingScript = document.getElementById('itunes-jsonp-script');
         if (existingScript) existingScript.remove();
 
-        // Tampilkan overlay animasi super singkat saat mencari lagu
         showLoadingModal("Mencari Informasi", `Menghubungkan ke database untuk "${query}"...`);
 
-        // Callback penampung daftar lagu yang cocok
         window.onMetadataReceived = function(response) {
             hideLoadingModal();
             suggestionsList.innerHTML = "";
@@ -1102,31 +1100,23 @@
             if (response.results && response.results.length > 0) {
                 suggestionsTitle.style.display = 'block';
                 
-                // =================================================================
-                // REVISI LOGIKA: SORTING UTAMAKAN VERSI ORIGINAL (ANTI-REMIX/STRING)
-                // =================================================================
+                // 1. FILTER SORTIR: Mengeliminasi versi Remix/String agar versi asli naik ke No. 1
                 const sortedResults = response.results.sort((a, b) => {
                     const cleanA = ((a.trackName || '') + ' ' + (a.collectionName || '')).toLowerCase();
                     const cleanB = ((b.trackName || '') + ' ' + (b.collectionName || '')).toLowerCase();
-                    
-                    // Daftar kata kunci yang mengindikasikan BUKAN lagu original
                     const negativeWords = ['remix', 'string', 'cover', 'tribute', 'karaoke', 'instrumental', 'acoustic', 'live', 'sped up', 'slowed', 'version', 'mix', 'edit'];
                     
-                    // Hitung berapa banyak kata negatif di item A dan B
                     const hasNegativeA = negativeWords.some(word => cleanA.includes(word));
                     const hasNegativeB = negativeWords.some(word => cleanB.includes(word));
                     
-                    // Jika A punya kata negatif tapi B bersih, turunkan posisi A (pindahkan B ke atas)
                     if (hasNegativeA && !hasNegativeB) return 1;
-                    // Jika B punya kata negatif tapi A bersih, naikkan posisi A
                     if (!hasNegativeA && hasNegativeB) return -1;
-                    
-                    // Jika sama-sama bersih atau sama-sama kotor, biarkan sesuai urutan popularitas asli iTunes
                     return 0;
                 });
 
-                // Tampilkan hasil yang sudah disortir (Maksimal 10)
-                sortedResults.forEach((item, index) => {
+                // 2. CETAK HASIL KE DAFTAR REKOMENDASI (Maksimal 10 Item Terbaik)
+                const finalTen = sortedResults.slice(0, 10);
+                finalTen.forEach((item, index) => {
                     const year = item.releaseDate ? item.releaseDate.substring(0, 4) : "-";
                     const artworkUrl = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : "";
                     const previewArtUrl = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "100x100bb") : ""; 
@@ -1137,13 +1127,13 @@
                     itemCard.innerHTML = `
                         <div class="item-art" style="background-image: url('${previewArtUrl || ''}')"></div>
                         <div class="item-info">
-                            <h5>${item.trackName || "Tidak Diketahui"}</h5>
-                            <p>${item.artistName || "Artis Lain"} • <span style="font-size:10px; opacity:0.8;">${item.collectionName || "Single"} (${year})</span></p>
+                            <h5>${toTitleCase(item.trackName || "Tidak Diketahui")}</h5>
+                            <p>${toTitleCase(item.artistName || "Artis Lain")} • <span style="font-size:10px; opacity:0.8;">${toTitleCase(item.collectionName || "Single")} (${year})</span></p>
                         </div>
                         <div style="font-size: 12px; color: var(--text-muted); opacity: 0.5;">➔</div>
                     `;
 
-                    // Jika item pertama (yang sekarang sudah dijamin versi ori), langsung terapkan ke form
+                    // Rekomendasi teratas (versi asli) otomatis langsung mengisi form
                     if (index === 0) {
                         applyTrackToForm(item, artworkUrl);
                     }
@@ -1164,8 +1154,8 @@
             }
         };
 
-        // REVISI PARAMETER: Ditambahkan &attribute=titleTerm agar mencari fokus pada judul lagu, bukan text acak
-        const jsonpUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&attribute=titleTerm&limit=15&callback=onMetadataReceived`;
+        // PERBAIKAN: Parameter fleksibel tanpa &attribute=titleTerm agar deteksi nama file MP3 tetap akurat
+        const jsonpUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=15&callback=onMetadataReceived`;
         const script = document.createElement('script');
         script.id = 'itunes-jsonp-script';
         script.src = jsonpUrl;
@@ -1178,9 +1168,9 @@
         document.body.appendChild(script);
     }
 
-    /// FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
+    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
     function applyTrackToForm(item, highResArtUrl) {
-        // Data dilewatkan ke fungsi toTitleCase agar huruf kapitalnya terkunci rapi & resmi
+        // Teks dipaksa rapi ke format Title Case bawaan resmi iTunes
         fields.title.value = toTitleCase(item.trackName || "");
         fields.artist.value = toTitleCase(item.artistName || "");
         fields.album.value = toTitleCase(item.collectionName || "");
@@ -1195,7 +1185,7 @@
             if (fields && fields.creator) fields.creator.value = "";
         }
 
-        // Sinkronisasi dengan Fungsi Pemroses Gambar Asli Bawaan Aplikasi
+        // Sinkronisasi dengan Fungsi Pemroses Gambar Asli Berbasis v3
         if (highResArtUrl) {
             selectedCoverUrl = highResArtUrl;
             fetchAndDisplayCover(highResArtUrl);

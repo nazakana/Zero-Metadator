@@ -1107,7 +1107,7 @@
   
   const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
   
-  // TRANSMISI ULTRA-STABIL: Menggunakan URLSearchParams untuk menjinakkan CORS redirect Google GAS
+  // TRANSMISI ULTRA-STABIL: Menggunakan URLSearchParams
   async function fetchFromAI(tName, aName) {
     const params = new URLSearchParams();
     params.append("trackName", tName);
@@ -1120,26 +1120,26 @@
       headers: { 
         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" 
       },
-      body: params.toString() // Dikirim dalam format aman: trackName=...&artistName=...
+      body: params.toString()
     });
     
     if (!response.ok) throw new Error("HTTP Network Error");
     return await response.json();
   }
 
-  // VALIDASI: Memastikan hasil bukan string kosong, buntu, atau terindikasi error server
+  // VALIDASI PINTAR: Mengenali kode kegagalan dari Server GAS
   function isJawabanValid(teks) {
     if (!teks) return false;
-    const clean = teks.trim();
-    if (clean === "" || clean === "BUNTU_AI" || clean === "ERROR_SERVER" || clean.toUpperCase().includes("ERROR")) {
+    const clean = teks.trim().toUpperCase();
+    if (clean === "" || clean.includes("ERROR") || clean.includes("TIDAK_DITEMUKAN") || clean.includes("BUNTU")) {
       return false;
     }
     return true;
   }
 
   try {
-    // TAHAP 1: Kirim data asli apa adanya dari iTunes
-    fields.creator.value = "Mencari komposer via HF Open-Engine...";
+    // TAHAP 1: Kirim data asli iTunes
+    fields.creator.value = "Mencari komposer via AI Engine (Tahap 1)...";
     let res = await fetchFromAI(trackName, artistName);
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1147,12 +1147,12 @@
       return; 
     }
 
-    // TAHAP 2: Jika Tahap 1 buntu karena teks kotor, bersihkan string judul & artis secara radikal
-    console.warn("Tahap 1 Buntu. Eskalasi ke Tahap 2: Pembersihan String...");
+    // TAHAP 2: Pembersihan string (hapus fitur feat, remix, kurung)
+    console.warn("Tahap 1 Gagal. Eskalasi ke Tahap 2: Pembersihan String...");
     let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').split('-')[0].trim();
     let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
     
-    fields.creator.value = "Menyaring ulang parameter data...";
+    fields.creator.value = "Menyaring ulang kluster data (Tahap 2)...";
     res = await fetchFromAI(cleanTrack, cleanArtist);
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1160,9 +1160,9 @@
       return; 
     }
 
-    // TAHAP 3: Blind Mode (Hanya cari berdasarkan judul lagu bersih, buang nama artis)
-    console.warn("Tahap 2 Buntu. Eskalasi ke Tahap 3: Blind Mode...");
-    fields.creator.value = "Memindai indeks musik universal...";
+    // TAHAP 3: Blind Mode (Tanpa artis)
+    console.warn("Tahap 2 Gagal. Eskalasi ke Tahap 3: Blind Mode...");
+    fields.creator.value = "Menganalisis indeks musik universal (Tahap 3)...";
     res = await fetchFromAI(cleanTrack, ""); 
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1170,12 +1170,12 @@
       return; 
     }
     
-    // ATURAN ZERO-FAKE: Kosongkan secara elegan jika semua jalur buntu, jangan diisi nama artis!
+    // KONDISI GAGAL TOTAL: Bersihkan field agar bisa diisi manual
     fields.creator.value = "";
-    fields.creator.placeholder = "Komposer tidak ditemukan oleh AI.";
+    fields.creator.placeholder = "Komposer tidak ditemukan.";
 
   } catch (err) {
-    console.error("Koneksi API Bermasalah:", err);
+    console.error("Koneksi Engine Bermasalah:", err);
     fields.creator.value = "";
     fields.creator.placeholder = "Gagal memuat AI Engine.";
   } finally {

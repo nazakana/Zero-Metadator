@@ -1098,14 +1098,15 @@
         }
     }
 
-    async function askAIForComposer(trackName, artistName) {
+    // INTEGRASI PROXY GOOGLE APPS SCRIPT (SANGAT AMAN, AKURAT & BEBAS CORS)
+async function askAIForComposer(trackName, artistName) {
     if (fields && fields.creator) {
         fields.creator.value = "AI sedang mencari komposer...";
         fields.creator.classList.add('ai-searching');
     }
 
-    // Tempel URL Web App Google Apps Script hasil deployment terbarumu di sini
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
+    // URL Web App Google Apps Script milikmu yang sudah 100% sukses teruji
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxURe57wMAW6dpBVOeP32iV5s94cgHvU6orPfdS_bgZ4-AgZIWS5TktggHbHZNmK6s9/exec";
 
     const cleanTrack = encodeURIComponent(trackName.trim());
     const cleanArtist = encodeURIComponent(artistName.trim());
@@ -1117,14 +1118,21 @@
 
         const data = await response.json();
 
+        // Jika backend sukses mengembalikan data komposer dari Gemini
         if (data && data.status === "success" && data.composer) {
-            fields.creator.value = data.composer;
+            // Jika ada masalah koneksi internal di backend yang mengembalikan string ERROR, beralih ke nama artis
+            if (data.composer.startsWith("ERROR")) {
+                fields.creator.value = artistName;
+            } else {
+                fields.creator.value = data.composer;
+            }
         } else {
             fields.creator.value = artistName;
         }
 
     } catch (err) {
         console.error("Gagal menarik data komposer:", err);
+        // Jalur penyelamat jika server Google Apps Script sedang sibuk / down
         fields.creator.value = artistName;
         fields.creator.placeholder = "Server sibuk, disamakan dengan artis.";
     } finally {

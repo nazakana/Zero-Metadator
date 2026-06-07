@@ -1100,7 +1100,7 @@
             if (response.results && response.results.length > 0) {
                 suggestionsTitle.style.display = 'block';
                 
-                // 1. FILTER REKOMENDASI: Mengurutkan agar versi asli naik ke posisi No. 1
+                // 1. FILTER SORTIR: Mengeliminasi versi Remix/String agar lagu asli naik ke nomor 1
                 const sortedResults = response.results.sort((a, b) => {
                     const cleanA = ((a.trackName || '') + ' ' + (a.collectionName || '')).toLowerCase();
                     const cleanB = ((b.trackName || '') + ' ' + (b.collectionName || '')).toLowerCase();
@@ -1114,7 +1114,7 @@
                     return 0;
                 });
 
-                // 2. CETAK REKOMENDASI KE UI (Maksimal 10 Item Terbaik)
+                // 2. CETAK HASIL KE DAFTAR REKOMENDASI (Maksimal 10 Item Terbaik)
                 const finalTen = sortedResults.slice(0, 10);
                 finalTen.forEach((item, index) => {
                     const year = item.releaseDate ? item.releaseDate.substring(0, 4) : "-";
@@ -1124,16 +1124,21 @@
                     const itemCard = document.createElement('div');
                     itemCard.className = `suggested-item ${index === 0 ? 'active' : ''}`;
                     
+                    // Ambil pengaman kapitalisasi Title Case
+                    const displayTitle = typeof toTitleCase === 'function' ? toTitleCase(item.trackName || "") : (item.trackName || "Tidak Diketahui");
+                    const displayArtist = typeof toTitleCase === 'function' ? toTitleCase(item.artistName || "") : (item.artistName || "Artis Lain");
+                    const displayAlbum = typeof toTitleCase === 'function' ? toTitleCase(item.collectionName || "") : (item.collectionName || "Single");
+
                     itemCard.innerHTML = `
                         <div class="item-art" style="background-image: url('${previewArtUrl || ''}')"></div>
                         <div class="item-info">
-                            <h5>${toTitleCase(item.trackName || "Tidak Diketahui")}</h5>
-                            <p>${toTitleCase(item.artistName || "Artis Lain")} • <span style="font-size:10px; opacity:0.8;">${toTitleCase(item.collectionName || "Single")} (${year})</span></p>
+                            <h5>${displayTitle}</h5>
+                            <p>${displayArtist} • <span style="font-size:10px; opacity:0.8;">${displayAlbum} (${year})</span></p>
                         </div>
                         <div style="font-size: 12px; color: var(--text-muted); opacity: 0.5;">➔</div>
                     `;
 
-                    // Otomatis suntikkan lagu terbaik peringkat 1 ke form dan pemutar musik
+                    // Rekomendasi teratas (versi asli) otomatis langsung mengisi form
                     if (index === 0) {
                         applyTrackToForm(item, artworkUrl);
                     }
@@ -1154,7 +1159,7 @@
             }
         };
 
-        // Menggunakan pencarian parameter fleksibel bawaan v3 agar nama file MP3 terbaca sempurna
+        // Menggunakan parameter fleksibel pencarian teks global bawaan v3 agar nama file MP3 terbaca
         const jsonpUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=15&callback=onMetadataReceived`;
         const script = document.createElement('script');
         script.id = 'itunes-jsonp-script';
@@ -1166,6 +1171,37 @@
         };
 
         document.body.appendChild(script);
+    }
+
+    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
+    function applyTrackToForm(item, highResArtUrl) {
+        const cleanCaps = typeof toTitleCase === 'function' ? toTitleCase : (str) => str;
+
+        // Ambil data resmi dan rapikan kapitalisasi hurufnya
+        fields.title.value = cleanCaps(item.trackName || "");
+        fields.artist.value = cleanCaps(item.artistName || "");
+        fields.album.value = cleanCaps(item.collectionName || "");
+        fields.albumArtist.value = cleanCaps(item.artistName || ""); 
+        fields.year.value = item.releaseDate ? item.releaseDate.substring(0, 4) : "";
+        fields.genre.value = cleanCaps(item.primaryGenreName || "");
+        
+        // Tembak otomatis ke AI Gemini via Proxy Apps Script
+        if (item.trackName && item.artistName) {
+            askAIForComposer(item.trackName, item.artistName);
+        } else {
+            if (fields && fields.creator) fields.creator.value = "";
+        }
+
+        // PERBAIKAN SELEKTOR DOM: Sinkronisasi aman dengan ID elemen asli HTML
+        const targetStatusText = document.getElementById('art-status-text');
+        if (highResArtUrl) {
+            selectedCoverUrl = highResArtUrl;
+            fetchAndDisplayCover(highResArtUrl);
+        } else {
+            selectedCoverUrl = "";
+            if (artFrame) artFrame.style.backgroundImage = "none";
+            if (targetStatusText) targetStatusText.innerText = "Tidak ada Album Art";
+        }
     }
 
     // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY

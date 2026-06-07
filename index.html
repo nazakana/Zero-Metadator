@@ -1098,93 +1098,40 @@
         }
     }
 
-    // REVISI: MENGGUNAKAN PROXY WEB APP DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
-  // REVISI: MENGGUNAKAN DISCOGS API DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
-// REVISI: MENGGUNAKAN DISCOGS API DENGAN CORS PROXY & FALLBACK AMAN
-async function askAIForComposer(trackName, artistName) {
-  if (fields && fields.creator) {
-    fields.creator.value = "Menganalisis database musik global...";
-    fields.creator.classList.add('ai-searching');
-  }
-
-  // Token Discogs milikmu
-  const DISCOGS_TOKEN = "gcWDHkyEJYKxqODsLRxyleFLEjbdNXubXGGThVHM";
-
-  try {
-    // 1. Bersihkan judul dan artis sewajarnya agar pencarian presisi
-    let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').trim();
-    let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
-    
-    let query = encodeURIComponent(`${cleanArtist} ${cleanTrack}`);
-    
-    // 2. Gunakan CORS Proxy gratis untuk menembus proteksi browser
-    let targetUrl = `https://api.discogs.com/database/search?q=${query}&type=release&per_page=3&token=${DISCOGS_TOKEN}`;
-    let proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-    
-    const response = await fetch(proxyUrl);
-    if (!response.ok) throw new Error("Proxy Server Menolak Akses");
-    
-    const rawData = await response.json();
-    // AllOrigins mengembalikan data dalam bentuk string di dalam properti .contents
-    const searchData = JSON.parse(rawData.contents);
-    
-    let foundComposer = "";
-
-    if (searchData.results && searchData.results.length > 0) {
-      // Ambil resource URL untuk melihat detail komposer di dalam tracklist
-      const detailTargetUrl = `${searchData.results[0].resource_url}?token=${DISCOGS_TOKEN}`;
-      const detailProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(detailTargetUrl)}`;
-      
-      const detailResponse = await fetch(detailProxyUrl);
-      if (detailResponse.ok) {
-        const detailRawData = await detailResponse.json();
-        const detailData = JSON.parse(detailRawData.contents);
-        
-        let targetArtists = [];
-        
-        if (detailData.extraartists) {
-          targetArtists = targetArtists.concat(detailData.extraartists);
-        }
-        
-        if (detailData.tracklist) {
-          const track = detailData.tracklist.find(t => 
-            t.title.toLowerCase().includes(cleanTrack.toLowerCase())
-          );
-          if (track && track.extraartists) {
-            targetArtists = targetArtists.concat(track.extraartists);
-          }
-        }
-
-        // Filter role yang merujuk pada komposer / penulis lirik
-        const composers = targetArtists
-          .filter(art => /written|compose|lyric|music by/i.test(art.role))
-          .map(art => art.name.replace(/\s\(\d+\)$/, '')); // Hapus angka unik Discogs seperti "Andmesh (2)"
-
-        if (composers.length > 0) {
-          foundComposer = [...new Set(composers)].join(', ');
-        }
-      }
-    }
-
-    // Jika Discogs gagal, buat Fallback otomatis ke nama Artist Utama (daripada kosong)
-    if (foundComposer) {
-      fields.creator.value = foundComposer.trim();
-    } else {
-      // Fallback cerdas: Umumnya penyanyi solo/band menulis lagu mereka sendiri atau dibantu tim
-      fields.creator.value = cleanArtist; 
-      fields.creator.placeholder = "Komposer otomatis (Disamakan dengan artis).";
-    }
-
-  } catch (err) {
-    console.error("Gagal menarik data komposer:", err);
-    // Jika benar-benar error, samakan dengan nama artis agar user tidak melihat field kosong
-    fields.creator.value = artistName;
-    fields.creator.placeholder = "Koneksi gagal, disamakan dengan artis.";
-  } finally {
+    async function askAIForComposer(trackName, artistName) {
     if (fields && fields.creator) {
-      fields.creator.classList.remove('ai-searching');
+        fields.creator.value = "AI sedang mencari komposer...";
+        fields.creator.classList.add('ai-searching');
     }
-  }
+
+    // Tempel URL Web App Google Apps Script hasil deployment terbarumu di sini
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
+
+    const cleanTrack = encodeURIComponent(trackName.trim());
+    const cleanArtist = encodeURIComponent(artistName.trim());
+    const targetUrl = `${GAS_URL}?trackName=${cleanTrack}&artistName=${cleanArtist}`;
+
+    try {
+        const response = await fetch(targetUrl);
+        if (!response.ok) throw new Error("Gagal merespon dari server proxy");
+
+        const data = await response.json();
+
+        if (data && data.status === "success" && data.composer) {
+            fields.creator.value = data.composer;
+        } else {
+            fields.creator.value = artistName;
+        }
+
+    } catch (err) {
+        console.error("Gagal menarik data komposer:", err);
+        fields.creator.value = artistName;
+        fields.creator.placeholder = "Server sibuk, disamakan dengan artis.";
+    } finally {
+        if (fields && fields.creator) {
+            fields.creator.classList.remove('ai-searching');
+        }
+    }
 }
 
 

@@ -960,10 +960,10 @@
         return result;
     }
 	
-	// HELPER: Memperbaiki Kapitalisasi Teks (Ariana Grande, Bukan ariana grande)
+	// HELPER: Memperbaiki Kapitalisasi Teks (Versi Aman & Kebal Error)
     function toTitleCase(str) {
-        if (!str) return "";
-        return str.replace(/\w\S*/g, function(txt) {
+        if (str === null || str === undefined) return "";
+        return str.toString().replace(/\w\S*/g, function(txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
     }
@@ -1178,7 +1178,7 @@
         document.body.appendChild(script);
     }
 
-    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
+    /// FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
     function applyTrackToForm(item, highResArtUrl) {
         // Data dilewatkan ke fungsi toTitleCase agar huruf kapitalnya terkunci rapi & resmi
         fields.title.value = toTitleCase(item.trackName || "");
@@ -1188,30 +1188,30 @@
         fields.year.value = item.releaseDate ? item.releaseDate.substring(0, 4) : "";
         fields.genre.value = toTitleCase(item.primaryGenreName || "");
         
+        // Panggil otomatis AI pencari komposer asli lewat Google Apps Script Proxy
         if (item.trackName && item.artistName) {
-            // PANGGIL GEMINI AI VIA PROXY GOOGLE APPS SCRIPT
             askAIForComposer(item.trackName, item.artistName);
         } else {
-            fields.creator.value = "";
+            if (fields && fields.creator) fields.creator.value = "";
         }
 
+        // Sinkronisasi dengan Fungsi Pemroses Gambar Asli Bawaan Aplikasi
         if (highResArtUrl) {
-            currentArtworkUrl = highResArtUrl;
-            setArtworkPreview(highResArtUrl, "Menghubungkan Cover...");
-            preFetchArtwork(highResArtUrl); 
+            selectedCoverUrl = highResArtUrl;
+            fetchAndDisplayCover(highResArtUrl);
         } else {
-            currentArtworkUrl = "";
-            currentArtworkBuffer = null;
-            resetArtworkPreview();
+            selectedCoverUrl = "";
+            if (artFrame) artFrame.style.backgroundImage = "none";
+            if (artStatusText) artStatusText.innerText = "Tidak ada Album Art";
         }
     }
 
     // INTEGRASI PROXY GOOGLE APPS SCRIPT (SANGAT AMAN, AKURAT & BEBAS CORS)
-async function askAIForComposer(trackName, artistName) {
-    if (fields && fields.creator) {
-        fields.creator.value = "AI sedang mencari komposer...";
-        fields.creator.classList.add('ai-searching');
-    }
+    async function askAIForComposer(trackName, artistName) {
+        if (fields && fields.creator) {
+            fields.creator.value = "AI sedang mencari komposer...";
+            fields.creator.classList.add('ai-searching');
+        }
 
     // URL Web App Google Apps Script milikmu yang sudah 100% sukses teruji
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxURe57wMAW6dpBVOeP32iV5s94cgHvU6orPfdS_bgZ4-AgZIWS5TktggHbHZNmK6s9/exec";

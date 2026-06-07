@@ -1107,27 +1107,31 @@
   
   const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
   
+  // TRANSMISI ULTRA-STABIL: Menggunakan URLSearchParams untuk menjinakkan CORS redirect Google GAS
   async function fetchFromAI(tName, aName) {
+    const params = new URLSearchParams();
+    params.append("trackName", tName);
+    params.append("artistName", aName);
+
     const response = await fetch(proxyUrl, {
       method: "POST",
       mode: "cors",
       redirect: "follow",
       headers: { 
-        // Menggunakan text/plain agar browser tidak mengirim request Preflight (OPTIONS) penyebab CORS lock
-        "Content-Type": "text/plain;charset=utf-8" 
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" 
       },
-      // Data dibungkus string murni yang aman dari kerusakan karakter khusus
-      body: JSON.stringify({ trackName: tName, artistName: aName })
+      body: params.toString() // Dikirim dalam format aman: trackName=...&artistName=...
     });
+    
     if (!response.ok) throw new Error("HTTP Network Error");
     return await response.json();
   }
 
-  // TAMBALAN 2: Validasi disempurnakan. Hanya menolak jika terindikasi kode buntu bawaan server.
+  // VALIDASI: Memastikan hasil bukan string kosong, buntu, atau terindikasi error server
   function isJawabanValid(teks) {
     if (!teks) return false;
     const clean = teks.trim();
-    if (clean === "" || clean === "BUNTU_AI" || clean === "ERROR_SERVER") {
+    if (clean === "" || clean === "BUNTU_AI" || clean === "ERROR_SERVER" || clean.toUpperCase().includes("ERROR")) {
       return false;
     }
     return true;
@@ -1135,7 +1139,7 @@
 
   try {
     // TAHAP 1: Kirim data asli apa adanya dari iTunes
-    fields.creator.value = "Mencari komposer via AI Studio Engine...";
+    fields.creator.value = "Mencari komposer via HF Open-Engine...";
     let res = await fetchFromAI(trackName, artistName);
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1148,7 +1152,7 @@
     let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').split('-')[0].trim();
     let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
     
-    fields.creator.value = "Menyelidiki ulang kluster metadata...";
+    fields.creator.value = "Menyaring ulang parameter data...";
     res = await fetchFromAI(cleanTrack, cleanArtist);
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1158,7 +1162,7 @@
 
     // TAHAP 3: Blind Mode (Hanya cari berdasarkan judul lagu bersih, buang nama artis)
     console.warn("Tahap 2 Buntu. Eskalasi ke Tahap 3: Blind Mode...");
-    fields.creator.value = "Mengekstrak data komposer universal...";
+    fields.creator.value = "Memindai indeks musik universal...";
     res = await fetchFromAI(cleanTrack, ""); 
     
     if (res.status === "success" && isJawabanValid(res.composer)) {

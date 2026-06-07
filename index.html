@@ -71,7 +71,13 @@
             overflow: hidden;
         }
 
-        /* Efek Dekorasi Latar di Dalam Card */
+        @media (max-width: 480px) {
+            .app-card {
+                padding: 20px;
+            }
+        }
+
+        /* Efek Latar Card */
         .app-card::before {
             content: '';
             position: absolute;
@@ -94,25 +100,16 @@
         /* Header Aplikasi */
         header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
-        .logo-container {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .logo-img {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            object-fit: cover;
             border-radius: 18px;
             margin-bottom: 12px;
             box-shadow: 0 8px 20px rgba(0, 113, 227, 0.3);
-        }
-
-        .logo-container svg {
-            width: 32px;
-            height: 32px;
-            fill: #fff;
         }
 
         header h1 {
@@ -130,15 +127,15 @@
             color: var(--text-muted);
         }
 
-        /* Zona Drop & File Upload */
+        /* Zona Drop Berkas (Diperramping untuk Mobile) */
         .upload-wrapper {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .drop-zone {
             border: 2px dashed var(--glass-border);
             border-radius: var(--radius-md);
-            padding: 30px 20px;
+            padding: 16px 20px;
             text-align: center;
             background: rgba(255, 255, 255, 0.01);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -153,41 +150,40 @@
         }
 
         .drop-zone svg {
-            width: 44px;
-            height: 44px;
+            width: 32px;
+            height: 32px;
             stroke: var(--primary);
             stroke-width: 1.5;
             fill: none;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
             transition: transform 0.3s ease;
         }
 
         .drop-zone:hover svg {
-            transform: translateY(-4px);
+            transform: translateY(-2px);
         }
 
         .drop-zone p {
-            font-size: 15px;
+            font-size: 14px;
             color: var(--text-main);
             font-weight: 500;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
         }
 
         .drop-zone span {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             display: block;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
-        /* Tombol Upload Asli (Dipercantik) */
         .native-upload-btn {
             display: inline-block;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--glass-border);
-            padding: 10px 18px;
+            padding: 6px 14px;
             border-radius: 30px;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-main);
             font-weight: 600;
             cursor: pointer;
@@ -206,28 +202,99 @@
             cursor: pointer;
         }
 
-        /* Informasi File Aktif & Player Ringkas */
-        .file-loaded-view {
+        /* Pemutar Musik Berdampingan dengan Frame Sampul */
+        .player-multiview {
             display: none;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
             padding: 16px;
             margin-bottom: 24px;
+            gap: 16px;
             align-items: center;
-            gap: 14px;
+        }
+
+        /* Frame Utama Album Art Pratinjau (Kiri/Atas) */
+        .art-preview-side {
+            width: 120px;
+            height: 120px;
+            border-radius: var(--radius-md);
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .art-preview-side svg {
+            width: 36px;
+            height: 36px;
+            fill: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* Mini Spinner khusus di dalam Frame Sampul */
+        .art-frame-loader {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 5;
+        }
+
+        .mini-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--warning);
+            animation: modalSpin 0.8s linear infinite;
+        }
+
+        .art-frame-loader span {
+            font-size: 9px;
+            color: var(--warning);
+            font-weight: 500;
+            text-align: center;
+            padding: 0 4px;
+        }
+
+        /* Sisi Pemutar Kanan */
+        .player-control-side {
+            flex-grow: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .file-loaded-view {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .vinyl-disc {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             background: radial-gradient(circle, #2c2c2e 20%, #1c1c1e 30%, #000 60%);
             border-radius: 50%;
             border: 2px solid #3a3a3c;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             animation: rotateVinyl 4s linear infinite;
             animation-play-state: paused;
             flex-shrink: 0;
@@ -235,8 +302,8 @@
 
         .vinyl-disc::after {
             content: '';
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             background: var(--bg-base);
             border-radius: 50%;
             border: 1.5px solid #fff;
@@ -267,14 +334,28 @@
         }
 
         .file-details p {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
         }
 
-        /* Kontrol Pemutar Audio Mini */
+        .art-indicator-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .player-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .player-control-btn {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             background: var(--primary);
             border: none;
@@ -293,8 +374,8 @@
         }
 
         .player-control-btn svg {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             fill: #fff;
         }
 
@@ -314,7 +395,7 @@
             width: 100%;
             background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--glass-border);
-            padding: 14px 16px;
+            padding: 12px 14px;
             border-radius: var(--radius-md);
             color: #fff;
             font-size: 14px;
@@ -333,7 +414,7 @@
             color: #fff;
             font-weight: 600;
             border: none;
-            padding: 0 24px;
+            padding: 0 20px;
             border-radius: var(--radius-md);
             cursor: pointer;
             font-size: 14px;
@@ -348,49 +429,35 @@
             box-shadow: 0 4px 15px rgba(0, 113, 227, 0.4);
         }
 
-        /* LIST HASIL PENCARIAN (MULTIPLE SUGGESTIONS) */
+       /* ================= REVISI RESULT JADI STYLE LIST ================= */
         .suggestions-title {
             display: none;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .suggestions-list {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            flex-direction: column; /* Mengatur susunan ke bawah (List) */
+            gap: 8px; /* Jarak ramping antar baris */
             margin-bottom: 24px;
-            max-height: 220px;
+            max-height: 280px;
             overflow-y: auto;
             padding-right: 4px;
         }
 
-        /* Custom Scrollbar untuk Suggestions List */
-        .suggestions-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .suggestions-list::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.02);
-            border-radius: 3px;
-        }
-        .suggestions-list::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-        }
-        .suggestions-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
+        /* Mengubah item dari kotak besar menjadi baris horizontal yang ringkas */
         .suggested-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            padding: 10px 14px;
+            border-radius: var(--radius-sm); /* Bingkai lebih tipis */
+            padding: 8px 12px;
             display: flex;
+            flex-direction: row; /* Berdampingan kiri-kanan */
             align-items: center;
             gap: 12px;
             cursor: pointer;
@@ -400,19 +467,18 @@
         .suggested-item:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--text-muted);
-            transform: translateY(-1px);
         }
 
         .suggested-item.active {
-            background: rgba(0, 113, 227, 0.12);
+            background: rgba(0, 113, 227, 0.15);
             border-color: var(--primary);
-            box-shadow: 0 0 10px rgba(0, 113, 227, 0.2);
         }
 
+        /* Foto sampul kecil di sebelah kiri baris */
         .suggested-item .item-art {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-sm);
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
             background-color: rgba(255,255,255,0.05);
             background-size: cover;
             background-position: center;
@@ -429,7 +495,7 @@
             font-size: 13px;
             font-weight: 600;
             color: #fff;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -441,50 +507,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        /* PREVIEW ALBUM ART UTAMA */
-        .art-preview-section {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            text-align: center;
-        }
-
-        .art-frame {
-            width: 160px;
-            height: 160px;
-            border-radius: var(--radius-md);
-            background-color: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .art-frame svg {
-            width: 48px;
-            height: 48px;
-            fill: var(--text-muted);
-            opacity: 0.5;
-        }
-
-        .art-preview-section span {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 500;
         }
 
         /* Form Input Metadata */
@@ -528,6 +550,19 @@
             border-color: var(--accent);
             background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 0 10px rgba(191, 90, 242, 0.2);
+        }
+
+        /* REVISI: Animasi Shimmer Pulse Komposer AI */
+        @keyframes aiPulse {
+            0% { background-color: rgba(255, 255, 255, 0.04); border-color: var(--glass-border); }
+            50% { background-color: rgba(191, 90, 242, 0.12); border-color: var(--accent); box-shadow: 0 0 10px rgba(191, 90, 242, 0.25); }
+            100% { background-color: rgba(255, 255, 255, 0.04); border-color: var(--glass-border); }
+        }
+
+        .input-group input.ai-searching {
+            animation: aiPulse 1.6s ease-in-out infinite;
+            color: var(--accent);
+            font-style: italic;
         }
 
         /* Tombol Simpan Eksport Utama */
@@ -576,7 +611,7 @@
         .status-info { color: var(--primary); }
         .status-warning { color: var(--warning); }
 
-        /* MODAL LOADING STYLES */
+        /* MODAL LOADING STYLES (DENGAN OVERLAY SUPER SINGKAT) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -588,13 +623,19 @@
             z-index: 9999;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease-out;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
         }
 
         .modal-card {
             background: var(--glass-card);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
-            padding: 40px 30px;
+            padding: 30px 24px;
             text-align: center;
             max-width: 320px;
             width: 90%;
@@ -602,17 +643,23 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
+            transform: scale(0.9);
+            transition: transform 0.2s ease-out;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: scale(1);
         }
 
         .modal-spinner {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border: 3.5px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%;
             border-top-color: var(--primary);
             border-right-color: var(--accent);
-            animation: modalSpin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            animation: modalSpin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         }
 
         @keyframes modalSpin {
@@ -636,11 +683,7 @@
 
 <div class="app-card">
     <header>
-        <div class="logo-container">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 11v1c0 1.66 1.34 3 3 3h1v2.93zm4.9-3.24c-.1-.32-.33-.6-.64-.75l-1.1-.53c-.31-.15-.49-.49-.44-.83.08-.51.13-1.03.13-1.58 0-3.36-2.07-6.23-5-7.39V4c0-.55-.45-1-1-1s-1 .45-1 1v.22c-.66.14-1.3.38-1.9.71L9.12 4.1c-.39-.39-1.02-.39-1.41 0s-.39 1.02 0 1.41l1.58 1.58c-.34.42-.62.88-.84 1.38L6.1 8.1c-.39-.39-1.02-.39-1.41 0s-.39 1.02 0 1.41l1.6 1.6C6.1 11.41 6 11.7 6 12c0 2.97 1.62 5.56 4 6.93V20c0 .55.45 1 1 1s1-.45 1-1v-.07c1.32-.23 2.51-.83 3.48-1.68l1.41 1.41c.39.39 1.02.39 1.41 0s.39-1.02 0-1.41l-1.41-1.41c.64-.81 1.13-1.77 1.41-2.82l.83-.4c.31-.15.54-.43.64-.75z"/>
-            </svg>
-        </div>
+        <img src="icon-512.png" class="logo-img" alt="Zero Metadator Logo" onerror="this.src='icon-192.png'; this.onerror=null;">
         <h1>Zero Metadator</h1>
         <p>Aplikasi Metadata Tag & Rename MP3 Otomatis</p>
     </header>
@@ -651,22 +694,39 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
             </svg>
             <p>Klik di sini untuk memilih berkas MP3</p>
-            <span>Atau seret & lepas file MP3 kamu langsung di area ini</span>
+            <span>Atau seret & lepas file MP3 kamu langsung di sini</span>
             <div class="native-upload-btn">Pilih Berkas</div>
             <input type="file" id="file-input" accept="audio/mp3">
         </div>
     </div>
 
-    <div class="file-loaded-view" id="player-view">
-        <div class="vinyl-disc" id="vinyl"></div>
-        <div class="file-details">
-            <h4 id="loaded-file-name">Nama File Lagu</h4>
-            <p id="loaded-file-size">0.0 MB</p>
+    <div class="player-multiview" id="player-multiview">
+        <div class="art-preview-side" id="art-frame">
+            <div class="art-frame-loader" id="art-frame-loader">
+                <div class="mini-spinner"></div>
+                <span id="art-loader-text">Loading...</span>
+            </div>
+            <svg id="art-placeholder-icon" viewBox="0 0 24 24">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
         </div>
-        <button class="player-control-btn" id="play-btn" title="Putar Pratinjau">
-            <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        </button>
+        
+        <div class="player-control-side">
+            <div class="file-loaded-view">
+                <div class="vinyl-disc" id="vinyl"></div>
+                <div class="file-details">
+                    <h4 id="loaded-file-name">Nama File Lagu</h4>
+                    <p id="loaded-file-size">0.0 MB</p>
+                </div>
+            </div>
+            <div class="player-actions">
+                <button class="player-control-btn" id="play-btn" title="Putar Pratinjau">
+                    <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <span class="art-indicator-text" id="art-status-text">Tidak ada Album Art</span>
+            </div>
+        </div>
     </div>
 
     <div class="search-container">
@@ -681,15 +741,6 @@
 
     <div class="suggestions-title" id="suggestions-title">Kemungkinan Lagu yang Cocok:</div>
     <div class="suggestions-list" id="suggestions-list"></div>
-
-    <div class="art-preview-section">
-        <div class="art-frame" id="art-frame">
-            <svg id="art-placeholder-icon" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-            </svg>
-        </div>
-        <span id="art-status-text">Tidak ada Album Art</span>
-    </div>
 
     <div class="metadata-form">
         <div class="input-group full-width">
@@ -736,7 +787,7 @@
 <div class="modal-overlay" id="loading-modal">
     <div class="modal-card">
         <div class="modal-spinner"></div>
-        <h4>Memproses Lagu</h4>
+        <h4 id="modal-title-text">Memproses Lagu</h4>
         <p id="modal-status-text">Menyiapkan berkas biner...</p>
     </div>
 </div>
@@ -750,10 +801,10 @@
     let activeAudioUrl = null;
     let isPlaying = false;
     let currentArtworkUrl = "";
-    let localArtworkBlob = null;      // Blob album art bawaan berkas
-    let localArtworkBuffer = null;    // ArrayBuffer dari album art bawaan berkas
-    let currentArtworkBuffer = null;  // ArrayBuffer album art yang di-prefetch dari internet
-    let activeArtworkPrefetchUrl = "";// URL pelacak pencegah tabrakan request (Race Condition)
+    let localArtworkBlob = null;      
+    let localArtworkBuffer = null;    
+    let currentArtworkBuffer = null;  
+    let activeArtworkPrefetchUrl = "";
 
     // DOM Elements Binder
     const fileInput = document.getElementById('file-input');
@@ -764,7 +815,7 @@
     const statusMsg = document.getElementById('status-msg');
     
     // Player UI Elements
-    const playerView = document.getElementById('player-view');
+    const playerMultiview = document.getElementById('player-multiview');
     const loadedFileName = document.getElementById('loaded-file-name');
     const loadedFileSize = document.getElementById('loaded-file-size');
     const playBtn = document.getElementById('play-btn');
@@ -773,8 +824,10 @@
     const vinyl = document.getElementById('vinyl');
     const audioPlayer = document.getElementById('audio-player');
 
-    // Album Art Preview Elements
+    // Album Art Preview Elements (Sekarang berada di dalam player-multiview)
     const artFrame = document.getElementById('art-frame');
+    const artFrameLoader = document.getElementById('art-frame-loader');
+    const artLoaderText = document.getElementById('art-loader-text');
     const artPlaceholderIcon = document.getElementById('art-placeholder-icon');
     const artStatusText = document.getElementById('art-status-text');
 
@@ -784,6 +837,7 @@
 
     // Loading Modal Elements
     const loadingModal = document.getElementById('loading-modal');
+    const modalTitleText = document.getElementById('modal-title-text');
     const modalStatusText = document.getElementById('modal-status-text');
 
     // Field Form Inputs
@@ -797,7 +851,24 @@
         creator: document.getElementById('meta-creator')
     };
 
-    // Helper Aman untuk Penggabungan Array Byte Biner Tanpa Masalah Memori Limit/Stack Overflow
+    // Helper Animasi Terstruktur untuk Membuka Modal Loading
+    function showLoadingModal(title, text) {
+        modalTitleText.innerText = title;
+        modalStatusText.innerText = text;
+        loadingModal.style.display = 'flex';
+        // Force reflow
+        loadingModal.offsetHeight;
+        loadingModal.classList.add('show');
+    }
+
+    function hideLoadingModal() {
+        loadingModal.classList.remove('show');
+        setTimeout(() => {
+            loadingModal.style.display = 'none';
+        }, 200);
+    }
+
+    // Helper Aman untuk Penggabungan Array Byte Biner
     function concatUint8Arrays(arrays) {
         let totalLength = 0;
         for (let i = 0; i < arrays.length; i++) {
@@ -821,7 +892,6 @@
     });
 
     dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('drop-zone');
         dropZone.classList.remove('dragover');
     });
 
@@ -842,7 +912,7 @@
         activeFileName = file.name;
         loadedFileName.innerText = file.name;
         loadedFileSize.innerText = (file.size / (1024 * 1024)).toFixed(2) + " MB";
-        playerView.style.display = 'flex';
+        playerMultiview.style.display = 'flex'; // Aktifkan container player-multiview berdampingan
 
         // Set Up Pratinjau Audio Player
         if (activeAudioUrl) {
@@ -921,7 +991,7 @@
         vinyl.classList.remove('playing');
     }
 
-    // 3. MULTIPLE SUGGESTIONS CORS-SAFE JSONP SEARCH (iTunes API)
+    // 3. MULTIPLE SUGGESTIONS - GRID REVISI (MAX 10 ITEM)
     searchBtn.addEventListener('click', () => {
         const query = searchInput.value.trim();
         if (!query) {
@@ -936,27 +1006,33 @@
         const existingScript = document.getElementById('itunes-jsonp-script');
         if (existingScript) existingScript.remove();
 
+        // Tampilkan overlay animasi super singkat saat mencari lagu
+        showLoadingModal("Mencari Informasi", `Menghubungkan ke database untuk "${query}"...`);
+
         // Callback penampung daftar lagu yang cocok
         window.onMetadataReceived = function(response) {
+            hideLoadingModal();
             suggestionsList.innerHTML = "";
             
             if (response.results && response.results.length > 0) {
                 suggestionsTitle.style.display = 'block';
                 
-                response.results.forEach((item, index) => {
+               response.results.forEach((item, index) => {
                     const year = item.releaseDate ? item.releaseDate.substring(0, 4) : "-";
-                    // Trik Penggantian Parameter iTunes: Ubah ukuran dari standard 100x100bb menjadi ultra HD 1400x1400bb
-                    const artworkUrl = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "1400x1400bb") : "";
-                    const previewArtUrl = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "200x200bb") : "";
+                    const artworkUrl = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "600x600bb") : "";
+                    const previewArtUrl = item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "100x100bb") : ""; // Cukup load gambar kecil untuk list
                     
                     const itemCard = document.createElement('div');
                     itemCard.className = `suggested-item ${index === 0 ? 'active' : ''}`;
+                    
+                    // REVISI STRUKTUR: Gambar di kiri, Teks info detail di kanan dalam satu baris
                     itemCard.innerHTML = `
                         <div class="item-art" style="background-image: url('${previewArtUrl || ''}')"></div>
                         <div class="item-info">
                             <h5>${item.trackName || "Tidak Diketahui"}</h5>
-                            <p>${item.artistName || "Artis Lain"} — ${item.collectionName || "Single"} (${year})</p>
+                            <p>${item.artistName || "Artis Lain"} • <span style="font-size:10px; opacity:0.8;">${item.collectionName || "Single"} (${year})</span></p>
                         </div>
+                        <div style="font-size: 12px; color: var(--text-muted); opacity: 0.5;">➔</div>
                     `;
 
                     // Jika item pertama, langsung terapkan ke form (Auto-applied)
@@ -974,29 +1050,28 @@
                     suggestionsList.appendChild(itemCard);
                 });
 
-                updateStatus(`Ditemukan ${response.results.length} kemungkinan kecocokan. Silakan pilih jika belum pas.`, "status-success");
+                updateStatus(`Ditemukan ${response.results.length} kecocokan musik. Silakan pilih jika belum pas.`, "status-success");
             } else {
                 updateStatus("Pencarian otomatis tidak menemukan data. Silakan isi form manual.", "status-warning");
                 suggestionsTitle.style.display = 'none';
             }
         };
 
-        // Mengambil limit 5 hasil pencarian lagu untuk disuguhkan ke pengguna
-        const jsonpUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=5&callback=onMetadataReceived`;
+        // Mengambil limit 10 hasil pencarian lagu untuk disuguhkan ke dalam UI GRID kotak-kotak
+        const jsonpUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=10&callback=onMetadataReceived`;
         const script = document.createElement('script');
         script.id = 'itunes-jsonp-script';
         script.src = jsonpUrl;
         
         script.onerror = function() {
+            hideLoadingModal();
             updateStatus("Gagal terkoneksi ke database musik. Silakan isi form manual.", "status-warning");
         };
 
         document.body.appendChild(script);
     }
 
-    // =================================================================
     // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
-    // =================================================================
     function applyTrackToForm(item, highResArtUrl) {
         fields.title.value = item.trackName || "";
         fields.artist.value = item.artistName || "";
@@ -1005,9 +1080,6 @@
         fields.year.value = item.releaseDate ? item.releaseDate.substring(0, 4) : "";
         fields.genre.value = item.primaryGenreName || "";
         
-        // Status loading awal
-        fields.creator.value = "Mencari komposer via Gemini AI..."; 
-
         if (item.trackName && item.artistName) {
             // PANGGIL GEMINI AI VIA PROXY GOOGLE APPS SCRIPT
             askAIForComposer(item.trackName, item.artistName);
@@ -1017,7 +1089,7 @@
 
         if (highResArtUrl) {
             currentArtworkUrl = highResArtUrl;
-            setArtworkPreview(highResArtUrl, "Menghubungkan Cover Art...");
+            setArtworkPreview(highResArtUrl, "Menghubungkan Cover...");
             preFetchArtwork(highResArtUrl); 
         } else {
             currentArtworkUrl = "";
@@ -1026,23 +1098,20 @@
         }
     }
 
-    // =================================================================
-    // SOLUSI UTAMA: MENGGUNAKAN PROXY WEB APP UNTUK AMANKAN REQUEST AI
-    // =================================================================
+    // REVISI: MENGGUNAKAN PROXY WEB APP DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
     async function askAIForComposer(trackName, artistName) {
         if (fields && fields.creator) {
             fields.creator.value = "Mencari komposer via Gemini Engine...";
+            fields.creator.classList.add('ai-searching'); // Aktifkan animasi pulse
         }
 
-        // URL Web App Google Apps Script Milikmu
         const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
 
         try {
-            // Kirim data menggunakan mode CORS dan izinkan pengalihan (redirect: follow)
             const response = await fetch(proxyUrl, {
                 method: "POST",
                 mode: "cors", 
-                redirect: "follow", // <-- WAJIB TAMBAHKAN BARIS INI
+                redirect: "follow", 
                 headers: {
                     "Content-Type": "text/plain;charset=utf-8"
                 },
@@ -1055,14 +1124,14 @@
             if (response.ok) {
                 const data = await response.json();
                 
-                // Cek jika proxy sukses dan mengembalikan data teks komposer
                 if (data.status === "success" && data.composer) {
                     let aiText = data.composer.trim();
                     if (aiText !== "" && !aiText.toUpperCase().includes("KOSONG")) {
                         if (fields && fields.creator) {
                             fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
                         }
-                        return; // Selesai
+                        fields.creator.classList.remove('ai-searching'); // Matikan animasi
+                        return; 
                     }
                 }
             }
@@ -1070,9 +1139,9 @@
             console.error("Gagal terhubung ke Proxy Google Apps Script:", error);
         }
 
-        // Jika gagal atau data tidak ditemukan, kosongkan input komposer agar user bisa isi manual
         if (fields && fields.creator) {
             fields.creator.value = ""; 
+            fields.creator.classList.remove('ai-searching'); // Matikan animasi jika gagal
         }
     }
 
@@ -1087,37 +1156,43 @@
     function resetArtworkPreview() {
         if (localArtworkBlob) {
             const localUrl = URL.createObjectURL(localArtworkBlob);
-            setArtworkPreview(localUrl, "Album Art Bawaan Berkas");
+            setArtworkPreview(localUrl, "Cover Bawaan Berkas");
         } else {
             artFrame.style.backgroundImage = 'none';
             artPlaceholderIcon.style.display = 'block';
             artStatusText.innerText = "Tidak ada Album Art";
             artStatusText.style.color = 'var(--text-muted)';
         }
+        artFrameLoader.style.display = 'none';
     }
 
-    // Background pre-fetch gambar sampul beresolusi tinggi agar siap sedia sebelum tombol unduh diklik
+    // REVISI: Tampilkan animasi loading spinner di dalam frame jika gambar masih diunduh
     async function preFetchArtwork(url) {
         activeArtworkPrefetchUrl = url;
         currentArtworkBuffer = null;
-        artStatusText.innerText = "Mengunduh sampul resolusi tinggi...";
+        
+        artLoaderText.innerText = "Mengunduh...";
+        artFrameLoader.style.display = 'flex'; // Aktifkan spinner mini di dalam frame kotak gambar
+        artStatusText.innerText = "Mengunduh sampul album...";
         artStatusText.style.color = 'var(--warning)';
 
         try {
-            const buffer = await fetchArtworkBytes(url, 10000);
+            const buffer = await fetchArtworkBytes(url, 12000);
             if (activeArtworkPrefetchUrl === url) {
+                artFrameLoader.style.display = 'none'; // Matikan spinner
                 if (buffer) {
                     currentArtworkBuffer = buffer;
-                    artStatusText.innerText = "Album Art siap disuntikkan!";
+                    artStatusText.innerText = "Sampul optimal 600x600 siap!";
                     artStatusText.style.color = 'var(--success)';
                 } else {
-                    artStatusText.innerText = "Gagal memuat cover baru (Menggunakan bawaan/tanpa cover)";
+                    artStatusText.innerText = "Gagal memuat cover baru (Menggunakan bawaan)";
                     artStatusText.style.color = 'var(--error)';
                 }
             }
         } catch (err) {
             console.error("Gagal melakukan pre-fetch:", err);
             if (activeArtworkPrefetchUrl === url) {
+                artFrameLoader.style.display = 'none';
                 artStatusText.innerText = "Gagal mengunduh cover baru";
                 artStatusText.style.color = 'var(--error)';
             }
@@ -1144,24 +1219,21 @@
                 if (offset + frameSize > bytes.length) break;
 
                 if (frameSize > 1) {
-                    // PARSING KHUSUS ALBUM ART (APIC FRAME) NATIVE
                     if (frameId === "APIC") {
                         try {
                             const encoding = bytes[offset];
                             let p = offset + 1;
                             
-                            // Ekstrak MIME Type
                             let mimeType = "";
                             while (bytes[p] !== 0 && p < offset + frameSize) {
                                 mimeType += String.fromCharCode(bytes[p]);
                                 p++;
                             }
-                            p++; // Lewati pembatas null
+                            p++; 
                             
-                            const pictureType = bytes[p]; // 3 adalah Front Cover
+                            const pictureType = bytes[p]; 
                             p++;
 
-                            // Lewati deskripsi string berdasarkan tipe encoding
                             if (encoding === 0 || encoding === 3) {
                                 while (bytes[p] !== 0 && p < offset + frameSize) { p++; }
                                 p++;
@@ -1170,16 +1242,14 @@
                                 p += 2;
                             }
 
-                            // Sisa byte adalah biner data gambar asli
                             const imgBytes = bytes.slice(p, offset + frameSize);
                             localArtworkBlob = new Blob([imgBytes], { type: mimeType || "image/jpeg" });
-                            localArtworkBuffer = new Uint8Array(imgBytes).buffer; // Salin buffer asli
+                            localArtworkBuffer = new Uint8Array(imgBytes).buffer; 
                             resetArtworkPreview();
                         } catch (e) {
                             console.error("Gagal melakukan parsing biner APIC frame:", e);
                         }
                     } else {
-                        // PARSING DATA TEKS STANDARD
                         const encodingByte = bytes[offset];
                         let rawFrameData = bytes.slice(offset + 1, offset + frameSize);
                         let decodedText = "";
@@ -1216,15 +1286,13 @@
     }
 
     // Helper untuk mengunduh biner Album Art dengan aman bypass CORS (Dilengkapi dengan timeout proteksi)
-    async function fetchArtworkBytes(url, timeoutMs = 8000) {
+    async function fetchArtworkBytes(url, timeoutMs = 12000) {
         if (!url) return null;
         
-        // Memakai AbortController untuk membatalkan fetch jika melebihi batas waktu (timeout)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
-            // q=90 untuk kualitas gambar kompresi premium, tanpa membatasi dimensi gambar (maksimum asli)
             const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(url)}&output=jpg&q=90`;
             const response = await fetch(proxyUrl, { signal: controller.signal });
             clearTimeout(timeoutId);
@@ -1233,12 +1301,11 @@
         } catch (e) {
             clearTimeout(timeoutId);
             console.error("Fetch artwork terputus atau timeout:", e);
-            // Return null agar proses download MP3 tetap dilanjutkan meskipun tanpa gambar penutup baru
             return null; 
         }
     }
 
-    // 5. INJEKTOR BINER NATIVE ID3v2 & EKSPOR FILE MP3 (Fully Synchronous Trigger)
+    // 5. INJEKTOR BINER NATIVE ID3v2 & EKSPOR FILE MP3
     processBtn.addEventListener('click', () => {
         if (!activeFileArrayBuffer) {
             updateStatus("Silakan unggah file MP3 terlebih dahulu!", "status-error");
@@ -1246,19 +1313,15 @@
         }
 
         // Tampilkan Modal Loading
-        loadingModal.style.display = 'flex';
-        modalStatusText.innerText = "Menyusun ulang struktur biner audio ID3v2...";
+        showLoadingModal("Menyusun File", "Menyusun ulang struktur biner audio ID3v2...");
         updateStatus("Sedang memproses berkas...", "status-info");
 
-        // Gunakan timeout kecil 50ms agar browser memiliki kesempatan menggambar modal UI sebelum meluncurkan manipulasi biner sinkronus
         setTimeout(() => {
             try {
                 let originalAudioBytes = new Uint8Array(activeFileArrayBuffer);
                 
-                // Buang tag ID3v2 lama dari MP3 asli agar biner tetap bersih
                 if (originalAudioBytes[0] === 73 && originalAudioBytes[1] === 68 && originalAudioBytes[2] === 51) {
                     let oldSize = 10 + ((originalAudioBytes[6] & 127) << 21 | (originalAudioBytes[7] & 127) << 14 | (originalAudioBytes[8] & 127) << 7 | originalAudioBytes[9] & 127);
-                    // Pastikan oldSize aman dan tidak merusak data audio biner asli
                     if (oldSize < originalAudioBytes.length) {
                         originalAudioBytes = originalAudioBytes.slice(oldSize);
                     }
@@ -1266,12 +1329,11 @@
 
                 let newFramesList = [];
 
-                // Helper untuk mengonversi string ke Array Byte UTF-16LE lengkap dengan BOM
                 function encodeUTF16LE(str) {
                     const buf = new Uint8Array(3 + str.length * 2);
-                    buf[0] = 0x01; // Flag Encoding: UTF-16
-                    buf[1] = 0xFF; // BOM Byte 1
-                    buf[2] = 0xFE; // BOM Byte 2
+                    buf[0] = 0x01; 
+                    buf[1] = 0xFF; 
+                    buf[2] = 0xFE; 
                     for (let i = 0; i < str.length; i++) {
                         const code = str.charCodeAt(i);
                         buf[3 + i * 2] = code & 0xFF;
@@ -1280,46 +1342,42 @@
                     return buf;
                 }
 
-                // Fungsi Pembantu Terstruktur untuk Membangun Frame Biner Tanpa Menggunakan Spread Array yang Besar
                 function buildBinaryFrame(frameId, valueBytes) {
                     const size = valueBytes.length;
                     const header = new Uint8Array([
                         frameId.charCodeAt(0), frameId.charCodeAt(1), frameId.charCodeAt(2), frameId.charCodeAt(3),
-                        (size >> 24) & 255, (size >> 16) & 255, (size >> 8) & 255, size & 255, // Size
-                        0, 0 // Flags
+                        (size >> 24) & 255, (size >> 16) & 255, (size >> 8) & 255, size & 255, 
+                        0, 0 
                     ]);
                     return concatUint8Arrays([header, valueBytes]);
                 }
 
-                // Fungsi Pembantu Teks
                 function buildTextFrame(frameId, valueString) {
                     if (!valueString) return new Uint8Array(0);
                     const valueBytes = encodeUTF16LE(valueString);
                     return buildBinaryFrame(frameId, valueBytes);
                 }
 
-                // Fungsi APIC Frame Baru
                 function buildApicFrame(imageBuffer) {
                     if (!imageBuffer) return new Uint8Array(0);
                     const imageBytes = new Uint8Array(imageBuffer);
                     const mimeType = "image/jpeg";
-                    const mimeBytes = new Uint8Array(mimeType.length + 1); // Padded with null
+                    const mimeBytes = new Uint8Array(mimeType.length + 1); 
                     for (let i = 0; i < mimeType.length; i++) {
                         mimeBytes[i] = mimeType.charCodeAt(i);
                     }
 
-                    const pictureType = 3; // Front Cover
+                    const pictureType = 3; 
                     const prefix = new Uint8Array(1 + mimeBytes.length + 1 + 1);
-                    prefix[0] = 0; // Text Encoding: 0 (ISO-8859-1)
+                    prefix[0] = 0; 
                     prefix.set(mimeBytes, 1);
                     prefix[1 + mimeBytes.length] = pictureType;
-                    prefix[1 + mimeBytes.length + 1] = 0; // Description Null
+                    prefix[1 + mimeBytes.length + 1] = 0; 
 
                     const payload = concatUint8Arrays([prefix, imageBytes]);
                     return buildBinaryFrame("APIC", payload);
                 }
 
-                // Konstruksi paket data frame metadata resmi secara bertahap
                 const titleFrame = buildTextFrame("TIT2", fields.title.value);
                 if (titleFrame.length > 0) newFramesList.push(titleFrame);
 
@@ -1341,14 +1399,12 @@
                 const creatorFrame = buildTextFrame("TCOM", fields.creator.value);
                 if (creatorFrame.length > 0) newFramesList.push(creatorFrame);
                 
-                // Ambil biner gambar (utamakan pre-fetched dari internet, jika tidak ada gunakan cover bawaan)
                 let artworkBuffer = currentArtworkBuffer || localArtworkBuffer;
                 if (artworkBuffer) {
                     const apicFrame = buildApicFrame(artworkBuffer);
                     if (apicFrame.length > 0) newFramesList.push(apicFrame);
                 }
 
-                // Gabungkan semua frame untuk menghitung total ukuran biner secara akurat
                 const allFramesCombined = concatUint8Arrays(newFramesList);
                 const totalSize = allFramesCombined.length;
                 const synchsafeSize = [
@@ -1359,12 +1415,12 @@
                 ];
 
                 const id3Header = new Uint8Array(10);
-                id3Header[0] = 73; // 'I'
-                id3Header[1] = 68; // 'D'
-                id3Header[2] = 51; // '3'
-                id3Header[3] = 3;  // Version 2.3
-                id3Header[4] = 0;  // Revision
-                id3Header[5] = 0;  // Flags
+                id3Header[0] = 73; 
+                id3Header[1] = 68; 
+                id3Header[2] = 51; 
+                id3Header[3] = 3;  
+                id3Header[4] = 0;  
+                id3Header[5] = 0;  
                 id3Header[6] = synchsafeSize[0];
                 id3Header[7] = synchsafeSize[1];
                 id3Header[8] = synchsafeSize[2];
@@ -1374,7 +1430,6 @@
 
                 const finalBlob = new Blob([id3Header, allFramesCombined, originalAudioBytes], { type: "audio/mp3" });
 
-                // Formula Auto Rename File: Judul - Artis.mp3
                 let cleanTitle = fields.title.value.trim().replace(/[/\\?%*:|"<>\s]/g, " ").replace(/\s+/g, " ").trim();
                 let cleanArtist = fields.artist.value.trim().replace(/[/\\?%*:|"<>\s]/g, " ").replace(/\s+/g, " ").trim();
                 
@@ -1385,7 +1440,6 @@
 
                 modalStatusText.innerText = "Menjalankan unduhan berkas...";
 
-                // Eksekusi pemicu unduhan sinkronus (Bebas dari pencegahan popup blocker browser)
                 const downloadAnchor = document.createElement('a');
                 const downloadUrl = URL.createObjectURL(finalBlob);
                 downloadAnchor.href = downloadUrl;
@@ -1394,34 +1448,29 @@
                 downloadAnchor.style.display = 'none';
                 document.body.appendChild(downloadAnchor);
                 
-                // Jalankan klik langsung
                 downloadAnchor.click();
 
-                // Beri penundaan sedikit agar peramban mobile sempat menangkap berkas
                 setTimeout(() => {
                     document.body.removeChild(downloadAnchor);
                     URL.revokeObjectURL(downloadUrl);
                 }, 200);
 
-                // Sembunyikan Modal & Tampilkan Sukses
-                loadingModal.style.display = 'none';
+                hideLoadingModal();
                 updateStatus("Berhasil! Lagu dan Cover Art berhasil disuntikkan.", "status-success");
 
             } catch (error) {
                 console.error("Gagal melakukan manipulasi biner:", error);
-                loadingModal.style.display = 'none';
+                hideLoadingModal();
                 updateStatus("Terjadi kegagalan penulisan biner berkas.", "status-error");
             }
         }, 50);
     });
 
-    // Logger Status Pesan
     function updateStatus(message, className) {
         statusMsg.innerText = message;
         statusMsg.className = "status-container " + className;
     }
 
-    // --- REGISTRASI SERVICE WORKER UNTUK SYARAT WAJIB PWA ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')

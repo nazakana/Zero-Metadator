@@ -1099,53 +1099,87 @@
     }
 
     // REVISI: MENGGUNAKAN PROXY WEB APP DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
-   async function askAIForComposer(trackName, artistName) {
+  // REVISI: MENGGUNAKAN DISCOGS API DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
+// REVISI: MENGGUNAKAN DISCOGS API DENGAN CORS PROXY & FALLBACK AMAN
+async function askAIForComposer(trackName, artistName) {
   if (fields && fields.creator) {
     fields.creator.value = "Menganalisis database musik global...";
     fields.creator.classList.add('ai-searching');
   }
 
+  // Token Discogs milikmu
+  const DISCOGS_TOKEN = "gcWDHkyEJYKxqODsLRxyleFLEjbdNXubXGGThVHM";
+
   try {
-    // Bersihkan judul dan artis agar pencarian lebih presisi
-    let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').split('-')[0].trim();
+    // 1. Bersihkan judul dan artis sewajarnya agar pencarian presisi
+    let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').trim();
     let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
     
-    // Tembak langsung ke Database Apple Music (Tanpa CORS Error, Tanpa API Key)
-    let query = encodeURIComponent(`${cleanTrack} ${cleanArtist}`);
-    let itunesUrl = `https://itunes.apple.com/search?term=${query}&media=music&limit=3`;
+    let query = encodeURIComponent(`${cleanArtist} ${cleanTrack}`);
     
-    const response = await fetch(itunesUrl);
+    // 2. Gunakan CORS Proxy gratis untuk menembus proteksi browser
+    let targetUrl = `https://api.discogs.com/database/search?q=${query}&type=release&per_page=3&token=${DISCOGS_TOKEN}`;
+    let proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
     
-    if (!response.ok) {
-      throw new Error("Server iTunes Menolak Akses");
-    }
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error("Proxy Server Menolak Akses");
     
-    const data = await response.json();
+    const rawData = await response.json();
+    // AllOrigins mengembalikan data dalam bentuk string di dalam properti .contents
+    const searchData = JSON.parse(rawData.contents);
+    
     let foundComposer = "";
-    
-    // Cari data yang memiliki atribut composerName di hasil pencarian
-    if (data.results && data.results.length > 0) {
-      for (let item of data.results) {
-        if (item.composerName) {
-          foundComposer = item.composerName;
-          break; // Berhenti mencari jika komposer sudah ditemukan
+
+    if (searchData.results && searchData.results.length > 0) {
+      // Ambil resource URL untuk melihat detail komposer di dalam tracklist
+      const detailTargetUrl = `${searchData.results[0].resource_url}?token=${DISCOGS_TOKEN}`;
+      const detailProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(detailTargetUrl)}`;
+      
+      const detailResponse = await fetch(detailProxyUrl);
+      if (detailResponse.ok) {
+        const detailRawData = await detailResponse.json();
+        const detailData = JSON.parse(detailRawData.contents);
+        
+        let targetArtists = [];
+        
+        if (detailData.extraartists) {
+          targetArtists = targetArtists.concat(detailData.extraartists);
+        }
+        
+        if (detailData.tracklist) {
+          const track = detailData.tracklist.find(t => 
+            t.title.toLowerCase().includes(cleanTrack.toLowerCase())
+          );
+          if (track && track.extraartists) {
+            targetArtists = targetArtists.concat(track.extraartists);
+          }
+        }
+
+        // Filter role yang merujuk pada komposer / penulis lirik
+        const composers = targetArtists
+          .filter(art => /written|compose|lyric|music by/i.test(art.role))
+          .map(art => art.name.replace(/\s\(\d+\)$/, '')); // Hapus angka unik Discogs seperti "Andmesh (2)"
+
+        if (composers.length > 0) {
+          foundComposer = [...new Set(composers)].join(', ');
         }
       }
     }
 
+    // Jika Discogs gagal, buat Fallback otomatis ke nama Artist Utama (daripada kosong)
     if (foundComposer) {
-      // Merapikan simbol "&" bawaan iTunes menjadi koma agar rapi
-      fields.creator.value = foundComposer.replace(/&/g, ',').trim();
+      fields.creator.value = foundComposer.trim();
     } else {
-      // Jika di database global benar-benar kosong
-      fields.creator.value = "";
-      fields.creator.placeholder = "Komposer tidak tercatat di database.";
+      // Fallback cerdas: Umumnya penyanyi solo/band menulis lagu mereka sendiri atau dibantu tim
+      fields.creator.value = cleanArtist; 
+      fields.creator.placeholder = "Komposer otomatis (Disamakan dengan artis).";
     }
 
   } catch (err) {
     console.error("Gagal menarik data komposer:", err);
-    fields.creator.value = "";
-    fields.creator.placeholder = "Koneksi database gagal.";
+    // Jika benar-benar error, samakan dengan nama artis agar user tidak melihat field kosong
+    fields.creator.value = artistName;
+    fields.creator.placeholder = "Koneksi gagal, disamakan dengan artis.";
   } finally {
     if (fields && fields.creator) {
       fields.creator.classList.remove('ai-searching');

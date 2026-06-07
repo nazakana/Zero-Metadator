@@ -1100,50 +1100,70 @@
 
     // REVISI: MENGGUNAKAN PROXY WEB APP DENGAN ANIMASI SHIMMER PULSE PADA INPUT KOMPOSER
     async function askAIForComposer(trackName, artistName) {
-        if (fields && fields.creator) {
-            fields.creator.value = "Mencari komposer via Gemini Engine...";
-            fields.creator.classList.add('ai-searching'); // Aktifkan animasi pulse
-        }
+  if (fields && fields.creator) {
+    fields.creator.value = "Menghubungi AI Engine...";
+    fields.creator.classList.add('ai-searching');
+  }
+  
+  const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
+  
+  // Fungsi internal pengeksekusi request ke GAS Proxy
+  async function fetchFromAI(tName, aName) {
+    const response = await fetch(proxyUrl, {
+      method: "POST",
+      mode: "cors",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ trackName: tName, artistName: aName })
+    });
+    if (!response.ok) throw new Error("HTTP Network Error");
+    const data = await response.json();
+    return data;
+  }
 
-        const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
-
-        try {
-            const response = await fetch(proxyUrl, {
-                method: "POST",
-                mode: "cors", 
-                redirect: "follow", 
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
-                body: JSON.stringify({
-                    trackName: trackName,
-                    artistName: artistName
-                })
-            });
-			
-            if (response.ok) {
-                const data = await response.json();
-                
-                if (data.status === "success" && data.composer) {
-                    let aiText = data.composer.trim();
-                    if (aiText !== "" && !aiText.toUpperCase().includes("KOSONG")) {
-                        if (fields && fields.creator) {
-                            fields.creator.value = aiText.replace(/["`'’.]/g, "").trim();
-                        }
-                        fields.creator.classList.remove('ai-searching'); // Matikan animasi
-                        return; 
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("Gagal terhubung ke Proxy Google Apps Script:", error);
-        }
-
-        if (fields && fields.creator) {
-            fields.creator.value = ""; 
-            fields.creator.classList.remove('ai-searching'); // Matikan animasi jika gagal
-        }
+  try {
+    // --- PERCOBAAN 1: Menggunakan nama asli dari payload iTunes ---
+    fields.creator.value = "Mencari data via Live Search Grounding...";
+    let res = await fetchFromAI(trackName, artistName);
+    
+    // Jika percobaan pertama terindikasi gagal secara struktural oleh AI
+    if (res.status !== "success" || !res.composer || res.composer === "GAGAL_STRUKTUR") {
+      console.warn("Percobaan 1 gagal. Menjalankan fallback pembersihan query...");
+      
+      // --- MEKANISME RETRY (PERCOBAAN 2): Pembersihan String Agresif ---
+      // Menghapus teks dekoratif seperti "- Live", "(Remastered)", "[Official Video]", dll yang sering mengacaukan mesin pencari AI
+      let cleanTrackName = trackName.replace(/\s*[\(\[][^]*?[\)\]]/g, '').split('-')[0].trim();
+      let cleanArtistName = artistName.split(',')[0].split('&')[0].trim(); // Ambil artis utama saja jika kolaborasi berkelompok
+      
+      fields.creator.value = "Mencoba kembali dengan query yang disederhanakan...";
+      res = await fetchFromAI(cleanTrackName, cleanArtistName);
     }
+
+    // --- PROSES AKHIR VERIFIKASI HASIL ---
+    if (res.status === "success" && res.composer && res.composer !== "GAGAL_STRUKTUR") {
+      let finalComposer = res.composer.replace(/["`'’.*]/g, "").trim();
+      if (finalComposer !== "") {
+        fields.creator.value = finalComposer;
+        return; // Sukses keluar dari fungsi
+      }
+    }
+    
+    // Jika semua layer AI benar-benar buntu (Kemungkinan 1%)
+    fields.creator.value = artistName; 
+    
+  } catch (err) {
+    console.error("Koneksi AI Terputus atau Bermasalah:", err);
+    // Fallback darurat jika server backend down total
+    fields.creator.value = artistName;
+  } finally {
+    if (fields && fields.creator) {
+      fields.creator.classList.remove('ai-searching');
+    }
+  }
+}
+
+
+
 
     // Mengatur visual Frame pratinjau Album Art
     function setArtworkPreview(src, statusText) {

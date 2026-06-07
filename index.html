@@ -1107,7 +1107,25 @@
   
   const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
   
-  // Fungsi internal pengeksekusi request ke GAS Proxy
+  // ==========================================
+  // UTILITY: Fungsi Pembersih String Radikal
+  // ==========================================
+  function bersihkanQueryLagu(teks) {
+    if (!teks) return "";
+    return teks
+      .replace(/\s*[\(\[][^]*?[\)\]]/gi, '') // Menghapus semua yang ada di dalam kurung ( ) dan [ ] seperti (Feat...), [Remix], (Live)
+      .split('-')[0]                        // Jika ada tanda minus (misal: Judul - Audio), ambil depannya saja
+      .replace(/["'`’]/g, '')               // Hapus tanda petik bungkus
+      .trim();
+  }
+
+  function bersihkanQueryArtis(teks) {
+    if (!teks) return "";
+    // Mengambil nama artis pertama saja sebelum tanda koma, ampersand, atau kata 'feat'
+    let artisUtama = teks.split(/,|\bfeat\b|&|;/i)[0];
+    return artisUtama.replace(/["'`’]/g, '').trim();
+  }
+
   async function fetchFromAI(tName, aName) {
     const response = await fetch(proxyUrl, {
       method: "POST",
@@ -1117,43 +1135,44 @@
       body: JSON.stringify({ trackName: tName, artistName: aName })
     });
     if (!response.ok) throw new Error("HTTP Network Error");
-    const data = await response.json();
-    return data;
+    return await response.json();
   }
 
   try {
-    // --- PERCOBAAN 1: Menggunakan nama asli dari payload iTunes ---
+    // Jalankan pembersihan query secara agresif SEJAK AWAL sebelum dikirim ke AI
+    let superCleanTrack = bersihkanQueryLagu(trackName);
+    let superCleanArtist = bersihkanQueryArtis(artistName);
+
+    console.log(`[AI Request] Mengirim Query Bersih -> Lagu: ${superCleanTrack} | Artis: ${superCleanArtist}`);
+
     fields.creator.value = "Mencari data via Live Search Grounding...";
-    let res = await fetchFromAI(trackName, artistName);
+    let res = await fetchFromAI(superCleanTrack, superCleanArtist);
     
-    // Jika percobaan pertama terindikasi gagal secara struktural oleh AI
+    // --- MEKANISME RETRY OTOMATIS JIKA PERCOBAAN 1 GAGAL ---
     if (res.status !== "success" || !res.composer || res.composer === "GAGAL_STRUKTUR") {
-      console.warn("Percobaan 1 gagal. Menjalankan fallback pembersihan query...");
+      console.warn("Percobaan 1 gagal. Menjalankan fallback retry dengan query super pendek...");
       
-      // --- MEKANISME RETRY (PERCOBAAN 2): Pembersihan String Agresif ---
-      // Menghapus teks dekoratif seperti "- Live", "(Remastered)", "[Official Video]", dll yang sering mengacaukan mesin pencari AI
-      let cleanTrackName = trackName.replace(/\s*[\(\[][^]*?[\)\]]/g, '').split('-')[0].trim();
-      let cleanArtistName = artistName.split(',')[0].split('&')[0].trim(); // Ambil artis utama saja jika kolaborasi berkelompok
+      // Jika masih gagal, persempit lagi pencarian (Hanya ambil 2 kata pertama dari judul lagu)
+      let ultraShortTrack = superCleanTrack.split(' ').slice(0, 2).join(' ');
       
-      fields.creator.value = "Mencoba kembali dengan query yang disederhanakan...";
-      res = await fetchFromAI(cleanTrackName, cleanArtistName);
+      fields.creator.value = "Mencoba kembali dengan query minimum...";
+      res = await fetchFromAI(ultraShortTrack, superCleanArtist);
     }
 
-    // --- PROSES AKHIR VERIFIKASI HASIL ---
+    // --- EVALUASI HASIL AKHIR ---
     if (res.status === "success" && res.composer && res.composer !== "GAGAL_STRUKTUR") {
       let finalComposer = res.composer.replace(/["`'’.*]/g, "").trim();
       if (finalComposer !== "") {
         fields.creator.value = finalComposer;
-        return; // Sukses keluar dari fungsi
+        return; 
       }
     }
     
-    // Jika semua layer AI benar-benar buntu (Kemungkinan 1%)
+    // Fallback absolut ke nama artis jika AI benar-benar terblokir sensor keamanan
     fields.creator.value = artistName; 
     
   } catch (err) {
-    console.error("Koneksi AI Terputus atau Bermasalah:", err);
-    // Fallback darurat jika server backend down total
+    console.error("Koneksi AI Bermasalah:", err);
     fields.creator.value = artistName;
   } finally {
     if (fields && fields.creator) {

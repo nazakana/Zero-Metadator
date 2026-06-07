@@ -1107,7 +1107,6 @@
   
   const proxyUrl = "https://script.google.com/macros/s/AKfycbyctghCxq6FfNE2d5xI-PRSpeu0_sE1Gg5ZoyZ7M5UFF0bcscyUD-e8ktMev7FTujBv/exec";
   
-  // TRIK ANTI-CORS PREFLIGHT: Gunakan text/plain tetapi kirimkan payload terstruktur JSON
   async function fetchFromAI(tName, aName) {
     const response = await fetch(proxyUrl, {
       method: "POST",
@@ -1122,15 +1121,19 @@
     return await response.json();
   }
 
+  // Fungsi validasi baru: Hanya menolak jika kosong atau terindikasi error server jelas
   function isJawabanValid(teks) {
     if (!teks) return false;
-    const upp = teks.toUpperCase().trim();
-    return !(upp === "" || upp.includes("TIDAK") || upp.includes("GAGAL") || upp.includes("KOSONG") || upp.includes("UNKNOWN"));
+    const clean = teks.trim();
+    if (clean === "" || clean.toUpperCase().includes("ERROR_API") || clean.toUpperCase() === "GAGAL_STRUKTUR") {
+      return false;
+    }
+    return true;
   }
 
   try {
-    // TAHAP 1: Kirim data asli dari iTunes
-    fields.creator.value = "Mencari komposer via Server Proxy...";
+    // TAHAP 1: Kirim data asli original
+    fields.creator.value = "Mencari data komposer (Tahap 1)...";
     let res = await fetchFromAI(trackName, artistName);
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1138,12 +1141,12 @@
       return; 
     }
 
-    // TAHAP 2: Jika Tahap 1 buntu, bersihkan string judul & artis secara radikal
+    // TAHAP 2: Pembersihan string agresif jika Tahap 1 gagal
     console.warn("Tahap 1 Buntu. Eskalasi ke Tahap 2: Pembersihan String...");
     let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').split('-')[0].trim();
     let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
     
-    fields.creator.value = "Menyelidiki ulang kluster metadata...";
+    fields.creator.value = "Membersihkan parameter pencarian (Tahap 2)...";
     res = await fetchFromAI(cleanTrack, cleanArtist);
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1151,9 +1154,9 @@
       return; 
     }
 
-    // TAHAP 3: Blind Mode (Hanya cari berdasarkan judul lagu bersih, buang nama artis)
+    // TAHAP 3: Blind Mode (Hanya Judul Lagu)
     console.warn("Tahap 2 Buntu. Eskalasi ke Tahap 3: Blind Mode...");
-    fields.creator.value = "Mengekstrak data komposer universal...";
+    fields.creator.value = "Mencari via indeks lagu global (Tahap 3)...";
     res = await fetchFromAI(cleanTrack, ""); 
     
     if (res.status === "success" && isJawabanValid(res.composer)) {
@@ -1161,7 +1164,7 @@
       return; 
     }
     
-    // ZERO-FAKE: Kosongkan jika buntu, jangan diisi nama artis!
+    // JIKA TOTAL BUNTU
     fields.creator.value = "";
     fields.creator.placeholder = "Komposer tidak ditemukan oleh AI.";
 

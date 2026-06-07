@@ -1119,42 +1119,55 @@
     return await response.json();
   }
 
+  // Fungsi helper untuk memvalidasi teks balasan AI
+  function isJawabanValid(teks) {
+    if (!teks) return false;
+    const upp = teks.toUpperCase();
+    return !(upp.includes("TIDAK_DITEMUKAN") || upp.includes("GAGAL") || upp === "");
+  }
+
   try {
-    fields.creator.value = "Mencari data komposer resmi...";
+    // TAHAP 1: Query Asli Original
+    fields.creator.value = "Menganalisis data komposer (Tahap 1)...";
     let res = await fetchFromAI(trackName, artistName);
     
-    // Evaluasi hasil Percobaan 1
-    if (res.status === "success" && res.composer && res.composer !== "GAGAL_STRUKTUR") {
-      let finalComposer = res.composer.trim();
-      if (finalComposer !== "" && !finalComposer.toUpperCase().includes("TIDAK DIKETAHUI")) {
-        fields.creator.value = finalComposer;
-        return; // BERHASIL KELUAR!
-      }
+    if (res.status === "success" && isJawabanValid(res.composer)) {
+      fields.creator.value = res.composer.trim();
+      return; 
     }
 
-    // Jika masuk ke sini, berarti Percobaan 1 mengembalikan nilai tidak valid. Jalankan Retry.
-    console.warn("Percobaan 1 tidak mengembalikan komposer valid. Mencoba alternatif query bersih...");
-    
+    // TAHAP 2: Query Bersih (Buang teks dalam kurung dan kolaborasi artis)
+    console.warn("Tahap 1 Buntu. Eskalasi ke Tahap 2: Pembersihan String...");
     let cleanTrack = trackName.replace(/\s*[\(\[][^]*?[\)\]]/gi, '').split('-')[0].trim();
     let cleanArtist = artistName.split(/,|\bfeat\b|&|;/i)[0].trim();
     
-    fields.creator.value = "Menyelidiki ulang metadata lagu...";
+    fields.creator.value = "Menganalisis data komposer (Tahap 2)...";
     res = await fetchFromAI(cleanTrack, cleanArtist);
     
-    if (res.status === "success" && res.composer && res.composer !== "GAGAL_STRUKTUR") {
-      let finalComposer = res.composer.trim();
-      if (finalComposer !== "" && !finalComposer.toUpperCase().includes("TIDAK DIKETAHUI")) {
-        fields.creator.value = finalComposer;
-        return; // BERHASIL DI RETRY!
-      }
+    if (res.status === "success" && isJawabanValid(res.composer)) {
+      fields.creator.value = res.composer.trim();
+      return; 
+    }
+
+    // TAHAP 3: Blind Mode (Cari murni hanya berdasarkan nama lagu, buang nama artis)
+    // Seringkali nama artis cover/remixer mengacaukan AI dari mencari komposer aslinya
+    console.warn("Tahap 2 Buntu. Eskalasi ke Tahap 3: Blind Mode...");
+    fields.creator.value = "Menganalisis data komposer (Tahap 3)...";
+    res = await fetchFromAI(cleanTrack, ""); 
+    
+    if (res.status === "success" && isJawabanValid(res.composer)) {
+      fields.creator.value = res.composer.trim();
+      return; 
     }
     
-    // Fallback absolut jika semua skenario buntu
-    fields.creator.value = artistName;
+    // GAGAL TOTAL: Dilarang keras menaruh nama artis. Kosongkan field dengan elegan.
+    fields.creator.value = "";
+    fields.creator.placeholder = "Data tidak ditemukan. Silakan ketik manual...";
 
   } catch (err) {
-    console.error("Koneksi AI Terputus:", err);
-    fields.creator.value = artistName;
+    console.error("Koneksi AI Terputus Total:", err);
+    fields.creator.value = "";
+    fields.creator.placeholder = "Koneksi API bermasalah.";
   } finally {
     if (fields && fields.creator) {
       fields.creator.classList.remove('ai-searching');

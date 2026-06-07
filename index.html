@@ -271,19 +271,22 @@
 
         /* Sisi Pemutar Kanan */
         .player-control-side {
-            width: 100%;
-            flex-grow: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Rata tengah vertikal */
+    align-items: center;      /* Rata tengah horizontal */
+    width: 100%;              /* Pastikan penuh */
+    gap: 15px;                /* Memberi jarak antar elemen agar tidak menempel */
+    padding: 10px;
+}
 
-        .file-loaded-view {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
+       .file-loaded-view {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+}
 
         /* Vinyl disc dihapus agar mirip Apple Music / Spotify modern */
         .vinyl-disc { display: none; }
@@ -304,12 +307,9 @@
 
         /* Desain Bar Timeline Musik */
         .timeline-container {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            width: 100%;
-            margin-top: 2px;
-        }
+    width: 90%;               /* Biar tidak terlalu lebar mentok ke pinggir */
+    margin: 0 auto;
+}
 
         .progress-slider {
             width: 100%;
@@ -349,11 +349,10 @@
         }
 
         .player-actions {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-top: 2px;
-        }
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
 
         .player-control-btn {
             width: 40px;
@@ -727,6 +726,45 @@
             color: var(--text-muted);
             line-height: 1.4;
         }
+		/* Pastikan kontainer form tidak lebih lebar dari layar */
+.metadata-form {
+    display: grid;
+    grid-template-columns: 1fr; /* Default 1 kolom untuk HP */
+    gap: 12px;
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box; /* SANGAT PENTING agar padding tidak menambah lebar */
+    overflow-x: hidden;     /* Mencegah konten meluap ke samping */
+}
+
+/* Mengatur grup input agar selalu di dalam layar */
+.input-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* Pastikan input tidak keluar dari box-nya */
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box; /* Mencegah input keluar dari batas parent */
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    background: var(--glass-bg);
+    color: var(--text-main);
+}
+
+/* Jika lebar layar lebih besar (Desktop/Tablet), gunakan 2 kolom */
+@media (min-width: 600px) {
+    .metadata-form {
+        grid-template-columns: 1fr 1fr;
+    }
+    .full-width {
+        grid-column: span 2;
+    }
+}
     </style>
 </head>
 <body>
@@ -735,7 +773,7 @@
     <header>
         <img src="icon-512.png" class="logo-img" alt="Zero Metadator Logo" onerror="this.src='icon-192.png'; this.onerror=null;">
         <h1>Zero Metadator</h1>
-        <p>Aplikasi Metadata Tag & Rename MP3 Otomatis</p>
+        <p>Tool Auto Metadata / MP3 Tag by @Zerolynx</p>
     </header>
 
     <div class="upload-wrapper">
@@ -804,37 +842,37 @@
         </button>
     </div>
 
-    <div class="suggestions-title" id="suggestions-title">Kemungkinan Lagu yang Cocok:</div>
+    <div class="suggestions-title" id="suggestions-title">Kemungkinan Metadata yang Cocok:</div>
     <div class="suggestions-list" id="suggestions-list"></div>
 
     <div class="metadata-form">
         <div class="input-group full-width">
             <label>Judul Lagu</label>
-            <input type="text" id="meta-title" placeholder="Contoh: Cinta Luar Biasa">
+            <input type="text" id="meta-title" placeholder="Contoh: Seize The Day">
         </div>
         <div class="input-group">
             <label>Artis</label>
-            <input type="text" id="meta-artist" placeholder="Contoh: Andmesh">
+            <input type="text" id="meta-artist" placeholder="Contoh: Avenged Sevenfold">
         </div>
         <div class="input-group">
             <label>Album</label>
-            <input type="text" id="meta-album" placeholder="Contoh: Cinta Luar Biasa (Album)">
+            <input type="text" id="meta-album" placeholder="Contoh: City of Evil">
         </div>
         <div class="input-group">
             <label>Album Artis</label>
-            <input type="text" id="meta-album-artist" placeholder="Contoh: Andmesh Kamaleng">
+            <input type="text" id="meta-album-artist" placeholder="Contoh: Avenged Sevenfold">
         </div>
         <div class="input-group">
             <label>Tahun Rilis</label>
-            <input type="text" id="meta-year" placeholder="Contoh: 2019">
+            <input type="text" id="meta-year" placeholder="Contoh: 2005">
         </div>
         <div class="input-group">
             <label>Genre</label>
-            <input type="text" id="meta-genre" placeholder="Contoh: Pop">
+            <input type="text" id="meta-genre" placeholder="Contoh: Hard Rock">
         </div>
         <div class="input-group full-width">
             <label>Komposer, Penulis Lirik</label>
-            <input type="text" id="meta-creator" placeholder="Contoh: Faisal Resi, Ryza">
+            <input type="text" id="meta-creator" placeholder="Contoh: Avenged Sevenfold (M. Shadows, Synyster Gates, Zacky Vengeance, Johnny Christ, & The Rev)">
         </div>
     </div>
 
@@ -843,7 +881,7 @@
             <svg style="width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            Terapkan & Unduh Musik
+            Terapkan & Unduh MP3
         </button>
         <div class="status-container" id="status-msg">Silakan unggah file MP3 untuk memulai.</div>
     </div>
@@ -1087,7 +1125,7 @@
         fetchMetadataJSONP(query);
     });
 
-   function fetchMetadataJSONP(query) {
+    function fetchMetadataJSONP(query) {
         const existingScript = document.getElementById('itunes-jsonp-script');
         if (existingScript) existingScript.remove();
 
@@ -1192,44 +1230,39 @@
             if (fields && fields.creator) fields.creator.value = "";
         }
 
-        // PERBAIKAN SELEKTOR DOM: Sinkronisasi aman dengan ID elemen asli HTML
+        // PERBAIKAN SELEKTOR & FUNGSIONAL:
+        // Kita paksa tampilkan gambar langsung ke elemen artFrame
         const targetStatusText = document.getElementById('art-status-text');
+        const artFrame = document.getElementById('art-frame'); // Pastikan ini ID frame gambar Anda
+
         if (highResArtUrl) {
             selectedCoverUrl = highResArtUrl;
-            fetchAndDisplayCover(highResArtUrl);
+            
+            // 1. Tampilkan Gambar di Frame
+            if (artFrame) {
+                artFrame.style.backgroundImage = `url('${highResArtUrl}')`;
+                artFrame.style.backgroundSize = "cover";
+                artFrame.style.backgroundPosition = "center";
+            }
+            
+            // 2. Update Status Teks
+            if (targetStatusText) {
+                targetStatusText.innerText = "Cover Art Dimuat";
+                targetStatusText.style.color = "#00ff00"; // Hijau biar terlihat sukses
+            }
+            
+            // 3. Tetap jalankan fungsi biner jika memang ada untuk keperluan save
+            if (typeof fetchAndProcessCover === 'function') {
+                fetchAndProcessCover(highResArtUrl);
+            }
         } else {
             selectedCoverUrl = "";
             if (artFrame) artFrame.style.backgroundImage = "none";
             if (targetStatusText) targetStatusText.innerText = "Tidak ada Album Art";
         }
-    }
-
-    // FORM TRACK APPLICATION + DIRECT AUTOMATIC COMPOSER VIA PROXY
-    function applyTrackToForm(item, highResArtUrl) {
-        // Teks dipaksa rapi ke format Title Case bawaan resmi iTunes
-        fields.title.value = toTitleCase(item.trackName || "");
-        fields.artist.value = toTitleCase(item.artistName || "");
-        fields.album.value = toTitleCase(item.collectionName || "");
-        fields.albumArtist.value = toTitleCase(item.artistName || ""); 
-        fields.year.value = item.releaseDate ? item.releaseDate.substring(0, 4) : "";
-        fields.genre.value = toTitleCase(item.primaryGenreName || "");
-        
-        // Panggil otomatis AI pencari komposer asli lewat Google Apps Script Proxy
-        if (item.trackName && item.artistName) {
-            askAIForComposer(item.trackName, item.artistName);
-        } else {
-            if (fields && fields.creator) fields.creator.value = "";
-        }
-
-        // Sinkronisasi dengan Fungsi Pemroses Gambar Asli Berbasis v3
-        if (highResArtUrl) {
-            selectedCoverUrl = highResArtUrl;
-            fetchAndDisplayCover(highResArtUrl);
-        } else {
-            selectedCoverUrl = "";
-            if (artFrame) artFrame.style.backgroundImage = "none";
-            if (artStatusText) artStatusText.innerText = "Tidak ada Album Art";
-        }
+		
+		
+		
     }
 
     // INTEGRASI PROXY GOOGLE APPS SCRIPT (SANGAT AMAN, AKURAT & BEBAS CORS)
@@ -1670,6 +1703,35 @@
             lightboxModal.style.display = 'none';
         }, 250);
     });
+	
+	function setArtworkPreview(url, text) {
+    const artFrame = document.getElementById('art-frame');
+    const artStatusText = document.getElementById('art-status-text');
+    const artPlaceholderIcon = document.getElementById('art-placeholder-icon');
+
+    if (artFrame) {
+        artFrame.style.backgroundImage = `url('${url}')`;
+    }
+    if (artStatusText) {
+        artStatusText.innerText = text;
+        artStatusText.style.color = 'var(--text-muted)';
+    }
+    if (artPlaceholderIcon) {
+        artPlaceholderIcon.style.display = 'none'; // Sembunyikan ikon bawaan
+    }
+}
+
+function resetArtworkPreview() {
+    const artFrame = document.getElementById('art-frame');
+    const artPlaceholderIcon = document.getElementById('art-placeholder-icon');
+    
+    if (artFrame) {
+        artFrame.style.backgroundImage = 'none';
+    }
+    if (artPlaceholderIcon) {
+        artPlaceholderIcon.style.display = 'block';
+    }
+}
 </script>
 </body>
 </html>

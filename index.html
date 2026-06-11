@@ -815,6 +815,38 @@
         padding: 10px 12px; /* Sedikit lebih tebal agar mudah ditekan jari */
     }
 }
+
+/* =========================================================================
+           OPTIMASI FULL SCREEN KANVAS TUNGGAL (TABLET LANDSCAPE & DESKTOP)
+           ========================================================================= */
+        @media (min-width: 769px) {
+            /* Hancurkan batasan 480px agar kotak aplikasi melebar penuh secara elegan */
+            .container {
+                max-width: 900px !important; /* Lebar maksimal ideal agar form tidak terlalu melar */
+                width: 95% !important;
+                margin: 30px auto !important;
+            }
+
+            /* Pertahankan layout satu kolom bawaan HP, cukup sesuaikan padding-nya */
+            .app-card {
+                display: block !important; /* Kembalikan ke susunan normal dari atas ke bawah */
+                padding: 40px !important;   /* Beri ruang dalam yang lebih lega agar mewah */
+            }
+
+            /* Kembalikan visual section ke aliran normal (tidak dikunci di kiri) */
+            .visual-section {
+                position: static !important;
+                width: 100% !important;
+                margin-bottom: 30px !important;
+            }
+
+            /* Jaga ukuran bingkai foto album tetap proporsional di tengah */
+            #art-frame {
+                width: 320px !important;
+                height: 320px !important;
+                margin: 0 auto 20px auto !important;
+            }
+        }
     </style>
 </head>
 <body>
